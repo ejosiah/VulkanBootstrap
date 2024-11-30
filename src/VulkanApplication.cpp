@@ -98,6 +98,9 @@ void VulkanApplication::processEvents() {
         std::visit(overloaded{
                 [&](const InvalidateEvent event) {
                     _renderer->invalidateSwapchain();
+                },
+                [&](const FrameBufferResizeEvent event) {
+                    _renderer->invalidateSwapchain();
                 }
         }, event);
     }

@@ -52,39 +52,21 @@ VulkanSwapchain::operator const VkSwapchainKHR *() const {
 VulkanSwapchainBuilder::VulkanSwapchainBuilder(const std::shared_ptr<VulkanDevice>& device, VkSurfaceKHR surface)
 : _device(device)
 , _surface(surface)
-, _capabilities(device->getSurfaceCapabilities(surface))
-, _supportedFormats(device->getSurfaceFormat(surface))
-, _supportedModes(device->getSurfacePresentationsModes(surface)){
-    _minImageCount = std::min(_capabilities.minImageCount + 1, _capabilities.maxImageCount);
-    _format = _supportedFormats.front();
-    _extent = { _capabilities.minImageExtent.width, _capabilities.minImageExtent.height};
-}
+{}
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setMinImageCount(uint32_t value) {
-    _minImageCount = std::min(value + 1, _capabilities.maxImageCount);
+    _minImageCount = value + 1;
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setImageFormat(VkFormat format, VkColorSpaceKHR colorSpace) {
-    bool supported = false;
-    for(auto aFormat : _supportedFormats) {
-        if(format == aFormat.format && colorSpace == aFormat.colorSpace) {
-            supported = true;
-            break;
-        }
-    }
-    if(!supported) {
-        spdlog::warn("requested format not supported, using default format");
-        _format = _supportedFormats.front();
-        return *this;
-    }
     _format = { format, colorSpace };
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setExtent(uint32_t width, uint32_t height) {
-    _extent.width = std::clamp(width, _capabilities.minImageExtent.width, _capabilities.maxImageExtent.width);
-    _extent.height = std::clamp(height, _capabilities.minImageExtent.height, _capabilities.maxImageExtent.height);
+    _extent.width = width;
+    _extent.height = height;
     return *this;
 }
 
@@ -104,16 +86,22 @@ VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPresentMode(VkPresentModeKHR 
 }
 
 std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
+    _capabilities = _device->getSurfaceCapabilities(_surface);
+    _supportedFormats = _device->getSurfaceFormat(_surface);
+    _supportedModes = _device->getSurfacePresentationsModes(_surface);
+
     VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 
     const auto format = getFormat();
     const auto presentMode = getPresentMode();
+    const auto extent = getExtent();
+    auto imageCount = std::min(_minImageCount, _capabilities.maxImageCount);
 
     createInfo.surface = _surface;
-    createInfo.minImageCount = _minImageCount;
+    createInfo.minImageCount = imageCount;
     createInfo.imageFormat = format.format;
     createInfo.imageColorSpace = format.colorSpace;
-    createInfo.imageExtent = _extent;
+    createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     createInfo.preTransform = _preTransform;
@@ -129,9 +117,9 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     }
     _oldSwapchain = _swapchain;
 
-    std::vector<VkImage> images(_minImageCount);
-    vkGetSwapchainImagesKHR(_device->handle(), _swapchain, &_minImageCount, images.data());
-    return std::make_unique<VulkanSwapchain>(_device->handle(), _swapchain, images, _extent, format.format);
+    std::vector<VkImage> images(imageCount);
+    vkGetSwapchainImagesKHR(_device->handle(), _swapchain, &imageCount, images.data());
+    return std::make_unique<VulkanSwapchain>(_device->handle(), _swapchain, images, extent, format.format);
 }
 
 VkSurfaceFormatKHR VulkanSwapchainBuilder::getFormat() const {
@@ -157,4 +145,9 @@ VkPresentModeKHR VulkanSwapchainBuilder::getPresentMode() const {
         return _presentMode;
     }
     return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D VulkanSwapchainBuilder::getExtent() const {
+    return { std::clamp(_extent.width, _capabilities.minImageExtent.width, _capabilities.maxImageExtent.width),
+        std::clamp(_extent.height, _capabilities.minImageExtent.height, _capabilities.maxImageExtent.height) };
 }

@@ -59,6 +59,8 @@ private:
 
     VkPresentModeKHR  getPresentMode() const;
 
+    VkExtent2D  getExtent() const;
+
 private:
     std::shared_ptr<VulkanDevice> _device;
     VkSurfaceKHR _surface{};
@@ -67,7 +69,7 @@ private:
     std::vector<VkPresentModeKHR > _supportedModes;
     VkSwapchainKHR _swapchain{};
     VkSwapchainKHR _oldSwapchain{};
-    uint32_t _minImageCount{};
+    uint32_t _minImageCount{2};
     VkSurfaceFormatKHR _format{};
     VkExtent2D _extent{};
     VkPresentModeKHR _presentMode{VK_PRESENT_MODE_FIFO_KHR};

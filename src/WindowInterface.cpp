@@ -1,5 +1,5 @@
 #include "WindowInterface.hpp"
-
+#include "event/Events.hpp"
 #include <spdlog/spdlog.h>
 #include <cstdlib>
 
@@ -12,7 +12,7 @@ void WindowInterface::connect() {
         std::exit(100);
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 }
 
 void WindowInterface::disconnect() {
@@ -38,6 +38,9 @@ std::vector<const char *> WindowInterface::extensions() {
 std::shared_ptr<Window> WindowInterface::make_shared(int width, int height, std::string title) {
     auto window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     glfwSetWindowCloseCallback(window, [](auto window){ glfwSetWindowShouldClose(window, GLFW_TRUE); });
+    glfwSetFramebufferSizeCallback(window, [](auto window, int width, int height){
+        EventBus::publish(FrameBufferResizeEvent(width, height));
+    });
     windows.push_back(std::make_shared<Window>(window, title));
 
     return windows.back();
