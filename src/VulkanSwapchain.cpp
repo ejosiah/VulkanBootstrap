@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanSwapchain.hpp"
 #include <algorithm>
 #include <spdlog/spdlog.h>
@@ -20,11 +21,11 @@ VulkanSwapchainBuilder VulkanSwapchain::builder(std::shared_ptr<VulkanDevice> de
     return { std::move(device), surface };
 }
 
-uint32_t VulkanSwapchain::imageCount() const {
+uint32 VulkanSwapchain::imageCount() const {
     return _images.size();
 }
 
-VkImage VulkanSwapchain::getImage(uint32_t index) {
+VkImage VulkanSwapchain::getImage(uint32 index) {
     assert(index < _images.size());
     return _images[index];
 }
@@ -33,11 +34,11 @@ VkFormat VulkanSwapchain::format() const {
     return _format;
 }
 
-uint32_t VulkanSwapchain::width() const {
+uint32 VulkanSwapchain::width() const {
     return _width;
 }
 
-uint32_t VulkanSwapchain::height() const {
+uint32 VulkanSwapchain::height() const {
     return _height;
 }
 
@@ -54,7 +55,7 @@ VulkanSwapchainBuilder::VulkanSwapchainBuilder(const std::shared_ptr<VulkanDevic
 , _surface(surface)
 {}
 
-VulkanSwapchainBuilder &VulkanSwapchainBuilder::setMinImageCount(uint32_t value) {
+VulkanSwapchainBuilder &VulkanSwapchainBuilder::setMinImageCount(uint32 value) {
     _minImageCount = value + 1;
     return *this;
 }
@@ -64,7 +65,7 @@ VulkanSwapchainBuilder &VulkanSwapchainBuilder::setImageFormat(VkFormat format, 
     return *this;
 }
 
-VulkanSwapchainBuilder &VulkanSwapchainBuilder::setExtent(uint32_t width, uint32_t height) {
+VulkanSwapchainBuilder &VulkanSwapchainBuilder::setExtent(uint32 width, uint32 height) {
     _extent.width = width;
     _extent.height = height;
     return *this;

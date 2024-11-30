@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "WindowInterface.hpp"
 #include "event/Events.hpp"
 #include <spdlog/spdlog.h>
@@ -24,7 +25,7 @@ void WindowInterface::disconnect() {
 }
 
 std::vector<const char *> WindowInterface::extensions() {
-    uint32_t count;
+    uint32 count;
     auto exts = glfwGetRequiredInstanceExtensions(&count);
 
     std::vector<const char*> vec;
@@ -84,8 +85,8 @@ void Window::aWaitEvents() {
     }while(width == 0 && height == 0);
 }
 
-std::tuple<uint32_t, uint32_t> Window::dimensions() {
+std::tuple<uint32, uint32> Window::dimensions() {
     int width, height;
     glfwGetFramebufferSize(_window, &width, &height);
-    return std::make_tuple(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    return std::make_tuple(to<uint32>(width), to<uint32>(height));
 }

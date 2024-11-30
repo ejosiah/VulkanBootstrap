@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDebugMessenger.hpp"
 
@@ -29,7 +30,7 @@ VulkanInstanceBuilder &VulkanInstanceBuilder::appName(std::string_view value) {
     return *this;
 }
 
-VulkanInstanceBuilder &VulkanInstanceBuilder::appVersion(uint32_t version) {
+VulkanInstanceBuilder &VulkanInstanceBuilder::appVersion(uint32 version) {
     _appVersion = version;
     return *this;
 }
@@ -39,12 +40,12 @@ VulkanInstanceBuilder &VulkanInstanceBuilder::engineName(std::string_view value)
     return *this;
 }
 
-VulkanInstanceBuilder &VulkanInstanceBuilder::engineVersion(uint32_t version) {
+VulkanInstanceBuilder &VulkanInstanceBuilder::engineVersion(uint32 version) {
     _engineVersion = version;
     return *this;
 }
 
-VulkanInstanceBuilder &VulkanInstanceBuilder::vulkanVersion(uint32_t version) {
+VulkanInstanceBuilder &VulkanInstanceBuilder::vulkanVersion(uint32 version) {
     _apiVersion = version;
     return *this;
 }
@@ -79,10 +80,10 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
     createInfo.pApplicationInfo = &appInfo;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(_enabledExtensions.size());
+    createInfo.enabledExtensionCount = to<uint32>(_enabledExtensions.size());
     createInfo.ppEnabledExtensionNames = _enabledExtensions.data();
 
-    createInfo.enabledLayerCount = static_cast<uint32_t>(_enabledLayers.size());
+    createInfo.enabledLayerCount = to<uint32>(_enabledLayers.size());
     createInfo.ppEnabledLayerNames = _enabledLayers.data();
 
 #ifndef NDEBUG

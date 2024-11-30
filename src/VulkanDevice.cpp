@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanEnumerations.hpp"
 #define VMA_IMPLEMENTATION
@@ -8,7 +9,7 @@
 #include <format>
 
 VulkanDevice::VulkanDevice(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
-                           VmaAllocator allocator, std::map<VkQueueFlags, uint32_t> queueFamilyIndex,
+                           VmaAllocator allocator, std::map<VkQueueFlags, uint32> queueFamilyIndex,
                            std::map<VkQueueFlags, VkQueue> queues)
 
 :_instance(instance)
@@ -58,7 +59,7 @@ VulkanDeviceBuilder VulkanDevice::builder(VkInstance instance) {
     return { instance };
 }
 
-VkQueue VulkanDevice::getQueue(uint32_t queueFamilyIndex) const {
+VkQueue VulkanDevice::getQueue(uint32 queueFamilyIndex) const {
     auto itr = std::find_if(_queueFamilyIndex.begin(), _queueFamilyIndex.end(),
                             [i=queueFamilyIndex](auto e){ return e.second == i; });
     if(itr != _queueFamilyIndex.end()){
@@ -103,7 +104,7 @@ VkSurfaceCapabilitiesKHR VulkanDevice::getSurfaceCapabilities(VkSurfaceKHR surfa
 }
 
 std::vector<VkSurfaceFormatKHR> VulkanDevice::getSurfaceFormat(VkSurfaceKHR surface) const {
-    uint32_t count;
+    uint32 count;
     vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, nullptr);
 
     std::vector<VkSurfaceFormatKHR> formats(count);
@@ -112,7 +113,7 @@ std::vector<VkSurfaceFormatKHR> VulkanDevice::getSurfaceFormat(VkSurfaceKHR surf
 }
 
 std::vector<VkPresentModeKHR> VulkanDevice::getSurfacePresentationsModes(VkSurfaceKHR surface) const {
-    uint32_t count;
+    uint32 count;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, nullptr);
 
     std::vector<VkPresentModeKHR> modes(count);
@@ -211,11 +212,11 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
     return std::make_shared<VulkanDevice>(_instance, _physicalDevice, device, allocator, queueFamilyIndex, queues);
 }
 
-std::map<VkQueueFlags, uint32_t> VulkanDeviceBuilder::getQueueFamilyIndexes() {
+std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
     assert(_queueTypes != 0 && "queueTypes not set");
     const auto props = v_enumerate<VkQueueFamilyProperties>(vkGetPhysicalDeviceQueueFamilyProperties, _physicalDevice);
 
-    std::map<VkFlags, uint32_t> queueFamilyIndex;
+    std::map<VkFlags, uint32> queueFamilyIndex;
 
     auto queryQueue = [&, queueType = _queueTypes](auto queueFamily, auto queueFlagBits, auto qfIndex){
         if(!queueFamilyIndex.contains(queueFlagBits)){
@@ -243,7 +244,7 @@ std::map<VkQueueFlags, uint32_t> VulkanDeviceBuilder::getQueueFamilyIndexes() {
 
 
     auto queryUniqueQueue =
-            [&, queueType = _uniqueQueueTypes, previousQueueFamily = std::map<VkFlags, uint32_t>{}]
+            [&, queueType = _uniqueQueueTypes, previousQueueFamily = std::map<VkFlags, uint32>{}]
             (auto queueFamily, auto queueFlagBits, auto qfIndex) mutable  {
                 auto countBits = [](auto bitset){
                     auto size = sizeof(bitset) * 8;
@@ -278,9 +279,9 @@ std::map<VkQueueFlags, uint32_t> VulkanDeviceBuilder::getQueueFamilyIndexes() {
     return queueFamilyIndex;
 }
 
-VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32_t>& queueFamilyIndexes) {
+VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32>& queueFamilyIndexes) {
     auto queuePriority = 1.0f;
-    std::set<uint32_t> uniqueQueueFamilyIndexes;
+    std::set<uint32> uniqueQueueFamilyIndexes;
     for(auto [_, queueFamilyIndex] : queueFamilyIndexes) {
         uniqueQueueFamilyIndexes.insert(queueFamilyIndex);
     }
@@ -295,11 +296,11 @@ VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32_t
     }
 
     VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.queueCreateInfoCount = to<uint32>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.enabledLayerCount = static_cast<uint32_t>(_enabledLayers.size());
+    createInfo.enabledLayerCount = to<uint32>(_enabledLayers.size());
     createInfo.ppEnabledLayerNames = _enabledLayers.data();
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(_enabledExtensions.size());
+    createInfo.enabledExtensionCount = to<uint32>(_enabledExtensions.size());
     createInfo.ppEnabledExtensionNames = _enabledExtensions.data();
     createInfo.pEnabledFeatures = &_enabledFeatures;
 

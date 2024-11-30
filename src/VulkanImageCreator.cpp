@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanImageCreator.hpp"
 
 #include <stdexcept>
@@ -37,17 +38,17 @@ VulkanImageCreator &VulkanImageCreator::extent(VkExtent3D extent) {
     return *this;
 }
 
-VulkanImageCreator &VulkanImageCreator::width(uint32_t width) {
+VulkanImageCreator &VulkanImageCreator::width(uint32 width) {
     _info.extent.width = width;
     return *this;
 }
 
-VulkanImageCreator &VulkanImageCreator::height(uint32_t height) {
+VulkanImageCreator &VulkanImageCreator::height(uint32 height) {
     _info.extent.height = height;
     return *this;
 }
 
-VulkanImageCreator &VulkanImageCreator::depth(uint32_t depth) {
+VulkanImageCreator &VulkanImageCreator::depth(uint32 depth) {
     _info.extent.depth = depth;
     return *this;
 }
@@ -82,12 +83,12 @@ VulkanImageCreator &VulkanImageCreator::sharingMode(VkSharingMode mode) {
     return *this;
 }
 
-VulkanImageCreator &VulkanImageCreator::queueFamilyIndexCount(uint32_t count) {
+VulkanImageCreator &VulkanImageCreator::queueFamilyIndexCount(uint32 count) {
     _info.queueFamilyIndexCount = count;
     return *this;
 }
 
-VulkanImageCreator &VulkanImageCreator::pQueueFamilyIndices(const uint32_t *ptr) {
+VulkanImageCreator &VulkanImageCreator::pQueueFamilyIndices(const uint32 *ptr) {
     _info.pQueueFamilyIndices = ptr;
     return *this;
 }
@@ -166,22 +167,22 @@ VulkanImageViewCreator &VulkanImageViewCreator::aspectMask(VkImageAspectFlagBits
     return *this;
 }
 
-VulkanImageViewCreator &VulkanImageViewCreator::baseMipLevel(uint32_t level) {
+VulkanImageViewCreator &VulkanImageViewCreator::baseMipLevel(uint32 level) {
     _info.subresourceRange.baseMipLevel = level;
     return *this;
 }
 
-VulkanImageViewCreator &VulkanImageViewCreator::levelCount(uint32_t count) {
+VulkanImageViewCreator &VulkanImageViewCreator::levelCount(uint32 count) {
     _info.subresourceRange.levelCount = count;
     return *this;
 }
 
-VulkanImageViewCreator &VulkanImageViewCreator::baseArrayLayer(uint32_t layer) {
+VulkanImageViewCreator &VulkanImageViewCreator::baseArrayLayer(uint32 layer) {
     _info.subresourceRange.baseArrayLayer = layer;
     return *this;
 }
 
-VulkanImageViewCreator &VulkanImageViewCreator::layerCount(uint32_t count) {
+VulkanImageViewCreator &VulkanImageViewCreator::layerCount(uint32 count) {
     _info.subresourceRange.layerCount = count;
     return *this;
 }

@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanRenderer.hpp"
 #include "event/Events.hpp"
 #include "WindowInterface.hpp"
@@ -29,7 +30,7 @@ void VulkanRenderer::init() {
 void VulkanRenderer::renderFrame() {
     vkWaitForFences(*_device, 1, &_inFlightFrame[currentFrame], false, UINT64_MAX);
 
-    uint32_t imageIndex = ~0u;
+    uint32 imageIndex = ~0u;
     auto status = vkAcquireNextImageKHR(*_device, *_swapchain, UINT64_MAX, _acquireImageSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
     if(status == VK_SUBOPTIMAL_KHR || status == VK_ERROR_OUT_OF_DATE_KHR){
         EventBus::publish(Events::invalidate);

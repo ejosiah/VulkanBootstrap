@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanCommandPool.hpp"
 
 VulkanCommandPool::VulkanCommandPool(VkDevice device, VkQueue queue, VkCommandPool commandPool)
@@ -21,7 +22,7 @@ VkCommandBuffer VulkanCommandPool::allocate() const {
     return commandBuffer;
 }
 
-std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32_t count) {
+std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32 count) {
     VkCommandBufferAllocateInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
     info.commandPool = _commandPool;
     info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -54,7 +55,7 @@ void VulkanCommandPool::oneTime(auto body) {
 }
 
 std::shared_ptr<VulkanCommandPool>
-VulkanCommandPool::make_shared(VkDevice device, VkQueue queue, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
+VulkanCommandPool::make_shared(VkDevice device, VkQueue queue, uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags) {
     VkCommandPoolCreateInfo createInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = flags,

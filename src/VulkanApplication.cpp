@@ -1,3 +1,4 @@
+#include "Types.hpp"
 #include "VulkanApplication.hpp"
 #include "event/Events.hpp"
 
@@ -81,13 +82,6 @@ void VulkanApplication::shutdown() {
 void VulkanApplication::tick() {
     _elapsedTime = glfwGetTime();
 }
-
-// helper type for the visitor #4
-template<class... Ts>
-struct overloaded : Ts... { using Ts::operator()...; };
-// explicit deduction guide (not needed as of C++20)
-template<class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 void VulkanApplication::processEvents() {
     WindowInterface::pollEvents();
