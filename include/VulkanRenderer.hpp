@@ -7,6 +7,8 @@
 #include "VulkanSwapchain.hpp"
 #include "VulkanCommandPool.hpp"
 
+#include <array>
+
 class VulkanRenderer {
 public:
     VulkanRenderer(
@@ -32,11 +34,14 @@ private:
 
     void createSynchronizationPrimitives();
 
+    void destroySynchronizationPrimitives();
+
     void initFrameBufferPrimitives();
 
-    void recordScene(uint32_t imageIndex);
+    void recordScene();
 
 private:
+    static constexpr int MAX_IN_FLIGHT_FRAMES = 2;
     std::shared_ptr<Window> _window;
     std::shared_ptr<VulkanInstance> _instance;
     std::shared_ptr<VulkanDevice> _device;
@@ -46,9 +51,10 @@ private:
     std::vector<VkCommandBuffer> _renderCommandBuffer{};
 
 
-    VkSemaphore _acquireImageSemaphore;
-    VkSemaphore _renderingFinishedSemaphore;
-    VkFence _inFlightFrame;
+    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _acquireImageSemaphore;
+    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _renderingFinishedSemaphore;
+    std::array<VkFence, MAX_IN_FLIGHT_FRAMES> _inFlightFrame;
+    int currentFrame{};
     VkSubmitInfo _renderSubmitInfo;
     VkPresentInfoKHR _presentInfo;
 
