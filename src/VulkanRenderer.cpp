@@ -33,7 +33,7 @@ void VulkanRenderer::renderFrame() {
     uint32 imageIndex = ~0u;
     auto status = vkAcquireNextImageKHR(*_device, *_swapchain, UINT64_MAX, _acquireImageSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
     if(status == VK_SUBOPTIMAL_KHR || status == VK_ERROR_OUT_OF_DATE_KHR){
-        EventBus::publish(Events::invalidate);
+        EventBus::Publish(Events::Invalidate);
         return;
     }
 
@@ -52,7 +52,7 @@ void VulkanRenderer::renderFrame() {
     _presentInfo.pImageIndices = &imageIndex;
     status = vkQueuePresentKHR(_device->getPresentQueue(), &_presentInfo);
     if(status == VK_SUBOPTIMAL_KHR || status == VK_ERROR_OUT_OF_DATE_KHR){
-        EventBus::publish(Events::invalidate);
+        EventBus::Publish(Events::Invalidate);
         return;
     }
     currentFrame = (currentFrame + 1 ) % MAX_IN_FLIGHT_FRAMES;

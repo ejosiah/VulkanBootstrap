@@ -13,7 +13,7 @@ public:
 
     [[nodiscard]] VkCommandBuffer allocate() const;
 
-    std::vector<VkCommandBuffer> allocate(uint32_t count);
+    std::vector<VkCommandBuffer> allocate(uint32_t count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     void oneTime(auto body);
 

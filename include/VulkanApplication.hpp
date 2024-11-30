@@ -7,6 +7,7 @@
 #include <VulkanSwapchain.hpp>
 #include "VulkanCommandPool.hpp"
 #include "VulkanRenderer.hpp"
+#include "Scene.hpp"
 
 class VulkanApplication {
 public:
@@ -15,11 +16,10 @@ public:
         std::shared_ptr<VulkanInstance> instance,
         std::shared_ptr<VulkanDebugMessenger> debugMessenger,
         std::shared_ptr<VulkanDevice> device,
-        std::shared_ptr<VulkanRenderer> renderer);
+        std::shared_ptr<VulkanRenderer> renderer,
+        std::shared_ptr<Scene> scene);
 
     void run();
-
-    void tick();
 
    void shutdown();
 
@@ -35,7 +35,6 @@ private:
     std::shared_ptr<VulkanInstance> _instance;
     std::shared_ptr<VulkanDebugMessenger> _debugMessenger;
     std::shared_ptr<VulkanDevice> _device;
+    std::shared_ptr<Scene> _scene;
     std::shared_ptr<VulkanRenderer> _renderer;
-    double _elapsedTime{0};
-    std::vector<VkClearColorValue> clearColor{  {1.f, 0, 0, 1.f}, {0, 1.f, 0, 1.f}, {0, 0, 1.f, 1.f} };
 };

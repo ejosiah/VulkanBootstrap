@@ -2,7 +2,6 @@
 #include "VulkanSwapchain.hpp"
 #include <algorithm>
 #include <spdlog/spdlog.h>
-#include <stdexcept>
 #include <utility>
 
 VulkanSwapchain::VulkanSwapchain(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage> images, VkExtent2D extent, VkFormat format)
@@ -50,8 +49,9 @@ VulkanSwapchain::operator const VkSwapchainKHR *() const {
     return &_swapchain;
 }
 
-VulkanSwapchainBuilder::VulkanSwapchainBuilder(const std::shared_ptr<VulkanDevice>& device, VkSurfaceKHR surface)
-: _device(device)
+
+VulkanSwapchainBuilder::VulkanSwapchainBuilder(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface)
+: _device(std::move(device))
 , _surface(surface)
 {}
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VulkanCommandPool.hpp"
-#include "VulkanImageCreator.hpp"
+#include "VulkanImage.hpp"
 #include <volk.h>
 #include <vk_mem_alloc.h>
 

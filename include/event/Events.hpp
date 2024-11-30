@@ -11,23 +11,25 @@ struct ClearScreenEvent{
     float r, g, b, a;
 };
 
-using Event = std::variant<InvalidateEvent, FrameBufferResizeEvent>;
+using Event = std::variant<InvalidateEvent, FrameBufferResizeEvent, ClearScreenEvent>;
 
 struct Events {
-    static constexpr InvalidateEvent invalidate{};
+    static constexpr InvalidateEvent Invalidate{};
 
-    static FrameBufferResizeEvent frameBufferResized(int width, int height) {
+    static FrameBufferResizeEvent FrameBufferResized(int width, int height) {
         return FrameBufferResizeEvent{ static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
     }
+
+    static void ClearScreen(float r, float g, float b, float a = 1);
 };
 
 class EventBus {
 public:
-    static void publish(Event event);
+    static void Publish(Event event);
 
-    static Event poll();
+    static Event Poll();
 
-    static bool hasEvents();
+    static bool HasEvents();
 
 private:
     EventBus() = default;

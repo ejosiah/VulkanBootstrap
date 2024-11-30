@@ -4,11 +4,11 @@
 
 EventBus EventBus::instance{};
 
-void EventBus::publish(Event event) {
+void EventBus::Publish(Event event) {
     instance._queue.push(event);
 }
 
-Event EventBus::poll() {
+Event EventBus::Poll() {
     if(instance._queue.empty()){
         throw std::runtime_error{ "EventBus empty" };
     }
@@ -19,6 +19,10 @@ Event EventBus::poll() {
     return  event;
 }
 
-bool EventBus::hasEvents() {
+bool EventBus::HasEvents() {
     return !instance._queue.empty();
+}
+
+void Events::ClearScreen(float r, float g, float b, float a) {
+    EventBus::Publish(ClearScreenEvent(r, g, b, a));
 }

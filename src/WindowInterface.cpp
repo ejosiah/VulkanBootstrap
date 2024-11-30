@@ -40,7 +40,7 @@ std::shared_ptr<Window> WindowInterface::make_shared(int width, int height, std:
     auto window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     glfwSetWindowCloseCallback(window, [](auto window){ glfwSetWindowShouldClose(window, GLFW_TRUE); });
     glfwSetFramebufferSizeCallback(window, [](auto window, int width, int height){
-        EventBus::publish(FrameBufferResizeEvent(width, height));
+        EventBus::Publish(FrameBufferResizeEvent(width, height));
     });
     windows.push_back(std::make_shared<Window>(window, title));
 

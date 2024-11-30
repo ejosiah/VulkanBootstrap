@@ -1,5 +1,5 @@
 #include "Types.hpp"
-#include "VulkanImageCreator.hpp"
+#include "VulkanImage.hpp"
 
 #include <stdexcept>
 

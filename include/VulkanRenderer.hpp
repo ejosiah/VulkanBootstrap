@@ -73,6 +73,4 @@ private:
         } _[10];
         std::vector<VkRenderingAttachmentInfo> attachment;
     } _colorBuffer;
-    VkClearColorValue _clearColor{ };
-    std::vector<VkClearColorValue> _clearColors{  {0, 1.f, 0, 1.f}, {1.f, 0, 0, 1.f}, {0, 0, 1.f, 1.f} };
 };

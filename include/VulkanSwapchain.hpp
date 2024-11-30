@@ -13,15 +13,15 @@ public:
 
     static VulkanSwapchainBuilder builder(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface);
 
-    uint32_t imageCount() const;
+    [[nodiscard]] uint32_t imageCount() const;
 
     VkImage getImage(uint32_t index);
 
-    VkFormat format() const;
+    [[nodiscard]] VkFormat format() const;
 
     [[nodiscard]] uint32_t width() const;
 
-    uint32_t  height() const;
+    [[nodiscard]] uint32_t  height() const;
 
     operator VkSwapchainKHR() const;
 
@@ -38,28 +38,28 @@ private:
 
 class VulkanSwapchainBuilder {
 public:
-    VulkanSwapchainBuilder(const std::shared_ptr<VulkanDevice>& device, VkSurfaceKHR surfaceKhr);
+    VulkanSwapchainBuilder(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surfaceKhr);
 
-    VulkanSwapchainBuilder& setMinImageCount(uint32_t value);
+    [[maybe_unused]] VulkanSwapchainBuilder& setMinImageCount(uint32_t value);
 
-    VulkanSwapchainBuilder& setImageFormat(VkFormat format, VkColorSpaceKHR colorSpace);
+    [[maybe_unused]] VulkanSwapchainBuilder& setImageFormat(VkFormat format, VkColorSpaceKHR colorSpace);
 
-    VulkanSwapchainBuilder& setExtent(uint32_t width, uint32_t height);
+    [[maybe_unused]] VulkanSwapchainBuilder& setExtent(uint32_t width, uint32_t height);
 
-    VulkanSwapchainBuilder& setPreTransform(VkSurfaceTransformFlagBitsKHR transform);
+    [[maybe_unused]] VulkanSwapchainBuilder& setPreTransform(VkSurfaceTransformFlagBitsKHR transform);
 
-    VulkanSwapchainBuilder& setCompositeAlpha(VkCompositeAlphaFlagBitsKHR compositeAlpha);
+    [[maybe_unused]] VulkanSwapchainBuilder& setCompositeAlpha(VkCompositeAlphaFlagBitsKHR compositeAlpha);
 
-    VulkanSwapchainBuilder& setPresentMode(VkPresentModeKHR mode);
+    [[maybe_unused]] VulkanSwapchainBuilder& setPresentMode(VkPresentModeKHR mode);
 
     std::unique_ptr<VulkanSwapchain> make_unique();
 
 private:
-    VkSurfaceFormatKHR getFormat() const;
+    [[nodiscard]] VkSurfaceFormatKHR getFormat() const;
 
-    VkPresentModeKHR  getPresentMode() const;
+    [[nodiscard]] VkPresentModeKHR  getPresentMode() const;
 
-    VkExtent2D  getExtent() const;
+    [[nodiscard]] VkExtent2D  getExtent() const;
 
 private:
     std::shared_ptr<VulkanDevice> _device;

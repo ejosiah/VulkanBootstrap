@@ -1,6 +1,7 @@
 #include "Types.hpp"
 #include "VulkanApplication.hpp"
 #include "event/Events.hpp"
+#include "Time.hpp"
 
 #include <spdlog/spdlog.h>
 #include <utility>
@@ -10,20 +11,23 @@ VulkanApplication::VulkanApplication(
     std::shared_ptr<VulkanInstance> instance,
     std::shared_ptr<VulkanDebugMessenger> debugMessenger,
     std::shared_ptr<VulkanDevice> device,
-    std::shared_ptr<VulkanRenderer> renderer)
+    std::shared_ptr<VulkanRenderer> renderer,
+    std::shared_ptr<Scene> scene)
     : _window(std::move(window))
     , _instance(std::move(instance))
     , _debugMessenger(std::move(debugMessenger))
     , _device(std::move(device))
-    , _renderer(std::move(renderer)){}
+    , _renderer(std::move(renderer))
+    , _scene(std::move(scene)){}
 
 void VulkanApplication::run() {
     setup();
 
     while(_window->isActive()) {
         processEvents();
+        _scene->update();
         _renderer->renderFrame();
-        tick();
+        Time::Tick();
     }
 
     shutdown();
@@ -64,12 +68,15 @@ VulkanApplication VulkanApplication::bootStrap() {
             scBuilder
                     .setImageFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
                     .make_unique();
+
+    std::shared_ptr<Scene> scene = std::make_shared<TestScene>(device);
     auto renderer = std::make_shared<VulkanRenderer>(window, instance, device, std::move(swapchain), scBuilder);
 
-    return { window, instance, debugMessenger, device, renderer };
+    return { window, instance, debugMessenger, device, renderer, scene };
 }
 
 void VulkanApplication::setup() {
+    Time::Init();
     _renderer->init();
 }
 
@@ -79,15 +86,11 @@ void VulkanApplication::shutdown() {
     WindowInterface::disconnect();
 }
 
-void VulkanApplication::tick() {
-    _elapsedTime = glfwGetTime();
-}
-
 void VulkanApplication::processEvents() {
     WindowInterface::pollEvents();
 
-    while(EventBus::hasEvents()) {
-        auto event = EventBus::poll();
+    while(EventBus::HasEvents()) {
+        auto event = EventBus::Poll();
 
         std::visit(overloaded{
                 [&](const InvalidateEvent event) {
@@ -95,6 +98,9 @@ void VulkanApplication::processEvents() {
                 },
                 [&](const FrameBufferResizeEvent event) {
                     _renderer->invalidateSwapchain();
+                },
+                [&](const ClearScreenEvent event) {
+                    _renderer->clearColor(event.r, event.g, event.b, event.a);
                 }
         }, event);
     }

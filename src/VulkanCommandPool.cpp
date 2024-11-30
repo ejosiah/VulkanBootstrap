@@ -22,10 +22,10 @@ VkCommandBuffer VulkanCommandPool::allocate() const {
     return commandBuffer;
 }
 
-std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32 count) {
+std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32 count, VkCommandBufferLevel level) {
     VkCommandBufferAllocateInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
     info.commandPool = _commandPool;
-    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    info.level = level;
     info.commandBufferCount = count;
 
     std::vector<VkCommandBuffer> commandBuffers(count);
