@@ -6,11 +6,34 @@
 #include <utility>
 
 Scene::Scene(std::shared_ptr<VulkanDevice> device)
-: _device(std::move(device)){}
+: _device(std::move(device))
+, _inheritanceInfo{
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+    .pNext = &_renderingInfo
+}{}
 
 void Scene::init0() {
     _commandPool = _device->createCommandPool(VK_QUEUE_GRAPHICS_BIT);
+    _commandBuffer = _commandPool->allocateOne(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    invalidate0();
     init();
+}
+
+void Scene::set(std::shared_ptr<Properties> properties) {
+    _properties = std::move(properties);
+}
+
+void Scene::invalidate0() {
+    _renderingInfo.colorAttachmentCount = 1;
+    _renderingInfo.pColorAttachmentFormats = &_properties->colorFormat;
+    _renderingInfo.depthAttachmentFormat = _properties->depthFormat;
+    _renderingInfo.rasterizationSamples = _properties->samples;
+    _inheritanceInfo.pNext = &_renderingInfo;
+}
+
+void Scene::refresh() {
+    invalidate0();
+    invalidate();
 }
 
 

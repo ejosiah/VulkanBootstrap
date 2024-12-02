@@ -14,7 +14,7 @@ void Time::Init() {
 void Time::Tick() {
     _now = glfwGetTime();
     _delta = _now - _elapsed;
-    _elapsed = _now;
+    _elapsed += _delta;
 }
 
 double Time::Elapsed() {
@@ -22,7 +22,7 @@ double Time::Elapsed() {
 }
 
 double Time::Delta() {
-    return _elapsed;
+    return _delta;
 }
 
 double Time::Now() {

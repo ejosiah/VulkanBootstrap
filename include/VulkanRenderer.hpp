@@ -6,6 +6,7 @@
 #include "VulkanDebugMessenger.hpp"
 #include "VulkanSwapchain.hpp"
 #include "VulkanCommandPool.hpp"
+#include "VulkanImage.hpp"
 
 #include <array>
 
@@ -21,13 +22,26 @@ public:
 
     void init();
 
-    void renderFrame();
+    void renderFrame(VkCommandBuffer commandBuffer);
 
     void clearColor(float r, float g, float b, float a = 1);
 
     void stop();
 
     void invalidateSwapchain();
+
+    [[nodiscard]] uint32 width() const;
+
+    [[nodiscard]] uint32 height() const;
+
+    [[nodiscard]] uint32 framesInFlight() const;
+
+    [[nodiscard]] VkSampleCountFlagBits samples() const;
+
+    [[nodiscard]] VkFormat format() const;
+
+    [[nodiscard]] VkFormat depthFormat() const;
+
 
 private:
     void createCommandPool();
@@ -38,7 +52,7 @@ private:
 
     void initFrameBufferPrimitives();
 
-    void recordScene();
+    void recordScene(VkCommandBuffer sceneCommandBuffer);
 
 private:
     static constexpr int MAX_IN_FLIGHT_FRAMES = 2;
@@ -60,17 +74,20 @@ private:
 
     VkRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
 
+
     struct {
-        VkImage image;
-        std::vector<VkImageView> imageView;
+        std::unique_ptr<VulkanImage> image;
+        std::vector<std::unique_ptr<VulkanImageView>> imageView;
         VkRenderingAttachmentInfo attachment;
     } _depthBuffer;
 
     struct {
         struct {
             VkImage image;
-            VkImageView imageView;
+            std::unique_ptr<VulkanImageView> imageView;
         } _[10];
         std::vector<VkRenderingAttachmentInfo> attachment;
     } _colorBuffer;
+    VkClearColorValue _clearColor{0, 0, 0, 1};
+
 };

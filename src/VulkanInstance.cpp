@@ -71,13 +71,13 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     appInfo.applicationVersion = _appVersion;
     appInfo.pEngineName = _engineName.c_str();
     appInfo.engineVersion = _engineVersion;
-    appInfo.apiVersion = _appVersion;
+    appInfo.apiVersion = _apiVersion;
 
 #ifndef NDEBUG
     _enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-    VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
+    VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
     createInfo.pApplicationInfo = &appInfo;
 
     createInfo.enabledExtensionCount = to<uint32>(_enabledExtensions.size());

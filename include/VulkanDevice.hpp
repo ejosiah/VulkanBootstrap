@@ -2,6 +2,9 @@
 
 #include "VulkanCommandPool.hpp"
 #include "VulkanImage.hpp"
+#include "VulkanBuffer.hpp"
+#include "VulkanPipeline.hpp"
+
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
@@ -64,6 +67,18 @@ public:
     VulkanImageCreator image();
 
     VulkanImageViewCreator imageView();
+
+    VulkanBufferCreator buffer();
+
+    VulkanShaderModuleCreator shader();
+
+    VulkanDescriptorPoolCreator descriptorPool();
+
+    VulkanPipelineDescriptorSetLayoutCreator descriptorSetLayout();
+
+    VulkanPipelineLayoutCreator pipelineLayout();
+
+    std::unique_ptr<VulkanPipeline> graphicsPipeline(VkGraphicsPipelineCreateInfo createInfo);
 
     void wait();
 

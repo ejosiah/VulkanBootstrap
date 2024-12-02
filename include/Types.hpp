@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cinttypes>
-
+#include "type_traits"
 template<class... Ts>
 struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts>
@@ -13,10 +13,17 @@ constexpr T to(auto obj) {
 }
 
 template<typename T>
-constexpr T as(auto obj) {
-    // TODO make sure object if pointer or ref
-    return reinterpret_cast<T*>(obj);
+constexpr auto as(auto obj) {
+    if constexpr (std::is_pointer<decltype(obj)>::value) {
+        return reinterpret_cast<T *>(obj);
+    } else if constexpr (std::is_reference_v<decltype(obj)>) {
+        return reinterpret_cast<T&>(obj);
+    }
 }
 
+using int8 = int8_t;
+using uint8 = uint8_t;
+using int16 = int16_t;
+using uint16 = uint16_t;
 using int32 = uint32_t;
 using uint32 = uint32_t;

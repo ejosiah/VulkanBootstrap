@@ -8,9 +8,14 @@
 #include "VulkanCommandPool.hpp"
 #include "VulkanRenderer.hpp"
 #include "Scene.hpp"
+#include "Properties.hpp"
+
+#include <functional>
 
 class VulkanApplication {
 public:
+    using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>)>;
+
     VulkanApplication(
         std::shared_ptr<Window> window,
         std::shared_ptr<VulkanInstance> instance,
@@ -25,10 +30,14 @@ public:
 
    void processEvents();
 
-   static VulkanApplication bootStrap();
+   static VulkanApplication bootStrap(SceneFactory&& sceneFactory);
 
 private:
     void setup();
+
+    void initProperties();
+
+    void invalidate();
 
 private:
     std::shared_ptr<Window> _window;
@@ -37,4 +46,5 @@ private:
     std::shared_ptr<VulkanDevice> _device;
     std::shared_ptr<Scene> _scene;
     std::shared_ptr<VulkanRenderer> _renderer;
+    std::shared_ptr<Properties> _properties;
 };

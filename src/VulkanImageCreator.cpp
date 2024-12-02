@@ -1,10 +1,12 @@
 #include "Types.hpp"
 #include "VulkanImage.hpp"
+#include "vk_mem_alloc.h"
 
 #include <stdexcept>
 
-VulkanImageCreator::VulkanImageCreator(VkDevice device)
+VulkanImageCreator::VulkanImageCreator(VkDevice device, VmaAllocator allocator)
 : _device(device)
+, _allocator(allocator)
 , _info{
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
@@ -98,14 +100,28 @@ VulkanImageCreator &VulkanImageCreator::initialLayout(VkImageLayout layout) {
     return *this;
 }
 
-VkImage VulkanImageCreator::create() {
+std::tuple<VkImage, VmaAllocation> VulkanImageCreator::create() {
+    VmaAllocationCreateInfo allocInfo{};
+    allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
     VkImage image;
-    auto result = vkCreateImage(_device, &_info, VK_NULL_HANDLE, &image);
+    VmaAllocation allocation;
+    auto result = vmaCreateImage(_allocator, &_info, &allocInfo, &image, &allocation, nullptr);
+
     if(result != VK_SUCCESS) {
         throw std::runtime_error{ "unable to create image"};
     }
-    return image;
+    return std::make_tuple(image, allocation);
 }
+
+std::unique_ptr<VulkanImage> VulkanImageCreator::make_unique() {
+    auto [image, allocation] = create();
+    return std::make_unique<VulkanImage>(_allocator, allocation, image, _info);
+}
+
+std::shared_ptr<VulkanImage> VulkanImageCreator::make_shared() {
+    auto [image, allocation] = create();
+    return std::make_shared<VulkanImage>(_allocator, allocation, image, _info);}
 
 VulkanImageViewCreator::VulkanImageViewCreator(VkDevice device)
 : _device(device)
@@ -204,4 +220,40 @@ VkImageView VulkanImageViewCreator::create() {
     }
 
     return imageView;
+}
+
+std::unique_ptr<VulkanImageView> VulkanImageViewCreator::make_unique() {
+    return std::make_unique<VulkanImageView>(_device, create(), _info);
+}
+
+std::shared_ptr<VulkanImageView> VulkanImageViewCreator::make_shared() {
+    return std::make_shared<VulkanImageView>(_device, create(), _info);
+}
+
+VulkanImage::VulkanImage(VmaAllocator allocator, VmaAllocation allocation, VkImage image,
+                         const VkImageCreateInfo &aSpec)
+: _allocator(allocator)
+, _allocation(allocation)
+, _image(image)
+, spec(aSpec){}
+
+VulkanImage::~VulkanImage() {
+    vmaDestroyImage(_allocator, _image, _allocation);
+}
+
+VulkanImage::operator VkImage() const {
+    return _image;
+}
+
+VulkanImageView::VulkanImageView(VkDevice device, VkImageView imageView, const VkImageViewCreateInfo& aSpec)
+: _device(device)
+, _imageView(imageView)
+, spec(aSpec){}
+
+VulkanImageView::~VulkanImageView() {
+    vkDestroyImageView(_device, _imageView, nullptr);
+}
+
+VulkanImageView::operator VkImageView() const {
+    return _imageView;
 }

@@ -27,7 +27,7 @@ void VulkanRenderer::init() {
     initFrameBufferPrimitives();
 }
 
-void VulkanRenderer::renderFrame() {
+void VulkanRenderer::renderFrame(VkCommandBuffer commandBuffer) {
     vkWaitForFences(*_device, 1, &_inFlightFrame[currentFrame], false, UINT64_MAX);
 
     uint32 imageIndex = ~0u;
@@ -39,9 +39,9 @@ void VulkanRenderer::renderFrame() {
 
     vkResetFences(*_device, 1, &_inFlightFrame[currentFrame]);
 
-    _depthBuffer.attachment.imageView = _depthBuffer.imageView[imageIndex];
+    _depthBuffer.attachment.imageView = *_depthBuffer.imageView[imageIndex];
     _renderingInfo.pColorAttachments = &_colorBuffer.attachment[imageIndex];
-    recordScene();
+    recordScene(commandBuffer);
 
     _renderSubmitInfo.pCommandBuffers = &_renderCommandBuffer[currentFrame];
     _renderSubmitInfo.pWaitSemaphores = &_acquireImageSemaphore[currentFrame];
@@ -87,7 +87,7 @@ void VulkanRenderer::createSynchronizationPrimitives() {
         }
     }
 
-    VkPipelineStageFlags waitStage{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    static VkPipelineStageFlags waitStage{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     _renderSubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
     _renderSubmitInfo.waitSemaphoreCount = 1;
     _renderSubmitInfo.pWaitDstStageMask = &waitStage;
@@ -110,14 +110,27 @@ void VulkanRenderer::destroySynchronizationPrimitives() {
 }
 
 void VulkanRenderer::initFrameBufferPrimitives() {
+    std::vector<VkImageMemoryBarrier> barriers(_swapchain->imageCount());
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
         _colorBuffer._[i].image = _swapchain->getImage(i);
         _colorBuffer._[i].imageView =
             _device->imageView()
                     .image(_swapchain->getImage(i))
                     .format(_swapchain->format())
-                .create();
+                .make_unique();
+
+        barriers[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barriers[i].srcAccessMask = VK_ACCESS_NONE;
+        barriers[i].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        barriers[i].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barriers[i].newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        barriers[i].image = _swapchain->getImage(i);
+        barriers[i].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
     }
+
+    _commandPool->oneTime([&](auto commandBuffer){
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, barriers.size(), barriers.data());
+    });
 
 
     _depthBuffer.image =
@@ -127,17 +140,29 @@ void VulkanRenderer::initFrameBufferPrimitives() {
             .width(_swapchain->width())
             .height(_swapchain->height())
             .usage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        .create();
+        .make_unique();
 
-    // TODO transition depth buffer
     _depthBuffer.imageView.resize(_swapchain->imageCount());
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
         _depthBuffer.imageView[i] =
             _device->imageView()
-                    .image(_colorBuffer._[i].image)
+                    .image(*_depthBuffer.image)
                     .format(VK_FORMAT_D32_SFLOAT)
-                .create();
+                    .aspectMask(VK_IMAGE_ASPECT_DEPTH_BIT)
+                .make_unique();
     }
+
+    VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    barrier.srcAccessMask = VK_ACCESS_NONE;
+    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+    barrier.image = *_depthBuffer.image;
+    barrier.subresourceRange = _depthBuffer.imageView.front()->spec.subresourceRange;
+
+    _commandPool->oneTime([&](auto commandBuffer){
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+    });
 
     _colorBuffer.attachment.resize(_swapchain->imageCount());
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
@@ -146,10 +171,11 @@ void VulkanRenderer::initFrameBufferPrimitives() {
         attachment.resolveMode = VK_RESOLVE_MODE_NONE;
         attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachment.imageView = _colorBuffer._[i].imageView;
-        attachment.clearValue.color = {1.0f, 0, 0, 1.f};
+        attachment.imageView = *_colorBuffer._[i].imageView;
+        attachment.clearValue.color = _clearColor;
         _colorBuffer.attachment[i] = attachment;
     }
+
 
     _depthBuffer.attachment = { VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     _depthBuffer.attachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
@@ -158,25 +184,29 @@ void VulkanRenderer::initFrameBufferPrimitives() {
     _depthBuffer.attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     _depthBuffer.attachment.clearValue.depthStencil = {1.f, 0u};
 
+    _renderingInfo.flags = VK_RENDERING_CONTENTS_SECONDARY_COMMAND_BUFFERS_BIT_KHR;
     _renderingInfo.renderArea = { {0, 0}, { _swapchain->width(), _swapchain->height() }};
     _renderingInfo.layerCount = 1;
     _renderingInfo.colorAttachmentCount = 1;
     _renderingInfo.pDepthAttachment = &_depthBuffer.attachment;
-//    _renderingInfo.pDepthAttachment = VK_NULL_HANDLE;
+
 }
 
-void VulkanRenderer::recordScene() {
+void VulkanRenderer::recordScene(VkCommandBuffer sceneCommandBuffer) {
     VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
     vkBeginCommandBuffer(_renderCommandBuffer[currentFrame], &beginInfo);
     vkCmdBeginRendering(_renderCommandBuffer[currentFrame], &_renderingInfo);
+
+    vkCmdExecuteCommands(_renderCommandBuffer[currentFrame], 1, &sceneCommandBuffer);
 
     vkCmdEndRendering(_renderCommandBuffer[currentFrame]);
     vkEndCommandBuffer(_renderCommandBuffer[currentFrame]);
 }
 
 void VulkanRenderer::clearColor(float r, float g, float b, float a) {
+    _clearColor = {r, g, b, a};
     for(auto& attachment : _colorBuffer.attachment){
-        attachment.clearValue.color = {r, g, b, a};
+        attachment.clearValue.color = _clearColor;
     }
 }
 
@@ -194,4 +224,28 @@ void VulkanRenderer::invalidateSwapchain() {
     _swapchainBuilder.setExtent(width, height);
     _swapchain = _swapchainBuilder.make_unique();
     init();
+}
+
+uint32 VulkanRenderer::width() const {
+    return _swapchain->width();
+}
+
+uint32 VulkanRenderer::height() const {
+    return _swapchain->height();
+}
+
+VkSampleCountFlagBits VulkanRenderer::samples() const {
+    return VK_SAMPLE_COUNT_1_BIT; // TODO query renderer / swapchain for this info
+}
+
+VkFormat VulkanRenderer::format() const {
+    return _swapchain->format();
+}
+
+VkFormat VulkanRenderer::depthFormat() const {
+    return VK_FORMAT_D32_SFLOAT;
+}
+
+uint32 VulkanRenderer::framesInFlight() const {
+    return MAX_IN_FLIGHT_FRAMES;
 }

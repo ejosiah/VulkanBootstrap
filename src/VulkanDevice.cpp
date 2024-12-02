@@ -135,11 +135,15 @@ VulkanDevice::createCommandPool(VkQueueFlagBits queueFlag, VkCommandPoolCreateFl
 }
 
 VulkanImageCreator VulkanDevice::image() {
-    return {_device};
+    return {_device, _allocator };
 }
 
 VulkanImageViewCreator VulkanDevice::imageView() {
     return { _device };
+}
+
+VulkanBufferCreator VulkanDevice::buffer() {
+    return { _allocator };
 }
 
 VulkanDevice::operator VkDevice() const {
@@ -148,6 +152,31 @@ VulkanDevice::operator VkDevice() const {
 
 void VulkanDevice::wait() {
     vkDeviceWaitIdle(_device);
+}
+
+VulkanShaderModuleCreator VulkanDevice::shader() {
+    return { _device };
+}
+
+VulkanDescriptorPoolCreator VulkanDevice::descriptorPool() {
+    return { _device };
+}
+
+VulkanPipelineDescriptorSetLayoutCreator VulkanDevice::descriptorSetLayout() {
+    return { _device };
+}
+
+VulkanPipelineLayoutCreator VulkanDevice::pipelineLayout() {
+    return { _device };
+}
+
+std::unique_ptr<VulkanPipeline> VulkanDevice::graphicsPipeline(VkGraphicsPipelineCreateInfo createInfo) {
+    VkPipeline pipeline;
+    auto result =  vkCreateGraphicsPipelines(_device, nullptr, 1, &createInfo, nullptr, &pipeline);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error{ "unable to create graphics pipeline" };
+    }
+    return std::make_unique<VulkanPipeline>(_device, pipeline);
 }
 
 VulkanDeviceBuilder::VulkanDeviceBuilder(VkInstance instance)
@@ -280,6 +309,13 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
 }
 
 VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32>& queueFamilyIndexes) {
+    VkPhysicalDeviceVulkan13Features devFeatures13{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+    devFeatures13.synchronization2 = VK_TRUE;
+    devFeatures13.dynamicRendering = VK_TRUE;
+    devFeatures13.maintenance4 = VK_TRUE;
+
+
+
     auto queuePriority = 1.0f;
     std::set<uint32> uniqueQueueFamilyIndexes;
     for(auto [_, queueFamilyIndex] : queueFamilyIndexes) {
@@ -296,6 +332,7 @@ VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32>&
     }
 
     VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+    createInfo.pNext = &devFeatures13;
     createInfo.queueCreateInfoCount = to<uint32>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.enabledLayerCount = to<uint32>(_enabledLayers.size());

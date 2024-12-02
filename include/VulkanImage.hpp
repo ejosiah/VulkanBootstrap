@@ -1,10 +1,44 @@
 #pragma once
 
 #include <volk.h>
+#include "vk_mem_alloc.h"
+
+#include <memory>
+
+class VulkanImage {
+public:
+    const VkImageCreateInfo spec;
+
+    VulkanImage(VmaAllocator allocator, VmaAllocation allocation, VkImage image, const VkImageCreateInfo& spec);
+
+    ~VulkanImage();
+
+    operator VkImage() const;
+
+private:
+    VmaAllocator _allocator;
+    VmaAllocation _allocation;
+    VkImage _image;
+};
+
+class VulkanImageView {
+public:
+    const VkImageViewCreateInfo spec;
+
+    VulkanImageView(VkDevice device, VkImageView imageView, const VkImageViewCreateInfo& spec);
+
+    ~VulkanImageView();
+
+    operator VkImageView() const;
+
+private:
+    VkDevice _device;
+    VkImageView _imageView;
+};
 
 class VulkanImageCreator {
 public:
-    VulkanImageCreator(VkDevice device);
+    VulkanImageCreator(VkDevice device, VmaAllocator allocator);
 
     VulkanImageCreator& flags(VkImageCreateFlagBits flags);
 
@@ -38,10 +72,15 @@ public:
 
     VulkanImageCreator& initialLayout(VkImageLayout layout);
 
-    VkImage create();
+    std::tuple<VkImage, VmaAllocation> create();
+
+    std::unique_ptr<VulkanImage> make_unique();
+
+    std::shared_ptr<VulkanImage> make_shared();
 
 private:
     VkDevice _device{};
+    VmaAllocator _allocator{};
     VkImageCreateInfo _info{ };
 };
 
@@ -76,6 +115,10 @@ public:
     VulkanImageViewCreator& layerCount(uint32_t count);
 
     VkImageView create();
+
+    std::unique_ptr<VulkanImageView> make_unique();
+
+    std::shared_ptr<VulkanImageView> make_shared();
 
 private:
     VkDevice _device{};

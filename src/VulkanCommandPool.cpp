@@ -10,10 +10,10 @@ VulkanCommandPool::~VulkanCommandPool() {
     vkDestroyCommandPool(_device, _commandPool, nullptr);
 }
 
-VkCommandBuffer VulkanCommandPool::allocate() const {
+VkCommandBuffer VulkanCommandPool::allocateOne(VkCommandBufferLevel level) const {
     VkCommandBufferAllocateInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
     info.commandPool = _commandPool;
-    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    info.level = level;
     info.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer{};
@@ -34,8 +34,8 @@ std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32 count, VkCommand
     return commandBuffers;
 }
 
-void VulkanCommandPool::oneTime(auto body) {
-    auto commandBuffer = allocate();
+void VulkanCommandPool::oneTime(Body&& body) {
+    auto commandBuffer = allocateOne();
 
     VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
