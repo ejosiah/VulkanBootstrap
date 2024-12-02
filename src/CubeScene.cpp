@@ -177,8 +177,8 @@ void CubeScene::createPipeline() {
 
     VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO };
 
-    VkViewport viewport{0, 0, to<float>(_properties->width), to<float>(_properties->height), 0, 1 };
-    VkRect2D scissor{ {0, 0}, {_properties->width, _properties->height }};
+    VkViewport viewport{0, 0, to<float>(AppState::screenWidth), to<float>(AppState::screenHeight), 0, 1 };
+    VkRect2D scissor{ {0, 0}, {AppState::screenWidth, AppState::screenHeight }};
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
     viewportStateCreateInfo.viewportCount = 1;
     viewportStateCreateInfo.pViewports = &viewport;
@@ -187,7 +187,7 @@ void CubeScene::createPipeline() {
 
     VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
+    rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationStateCreateInfo.lineWidth = 1;
 
@@ -216,11 +216,11 @@ void CubeScene::createPipeline() {
             .addSetLayout(*_descriptorSetLayout)
         .make_unique();
 
-    auto colorFormat = _properties->colorFormat;
+    auto colorFormat = AppState::screenFormat;
     VkPipelineRenderingCreateInfo renderingCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
     renderingCreateInfo.colorAttachmentCount = 1;
     renderingCreateInfo.pColorAttachmentFormats = &colorFormat;
-    renderingCreateInfo.depthAttachmentFormat = _properties->depthFormat;
+    renderingCreateInfo.depthAttachmentFormat = AppState::screenDepthFormat;
 
     VkGraphicsPipelineCreateInfo createInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
     createInfo.pNext = &renderingCreateInfo;
@@ -283,7 +283,7 @@ void CubeScene::invalidate() {
 }
 
 void CubeScene::initCamera() {
-    transform[2] = vulkan_perspective(glm::radians(60.f), to<float>(_properties->width)/to<float>(_properties->height), 0.1f, 50.f);
+    transform[2] = vulkan_perspective(glm::radians(60.f), AppState::ScreenAspectRatio(), 0.1f, 50.f);
     transform[1] = glm::lookAt({0, 2, 5}, glm::vec3(0), {0, 1, 0});
     transform[0] = glm::mat4(1);
 

@@ -8,7 +8,7 @@
 #include "VulkanCommandPool.hpp"
 #include "VulkanRenderer.hpp"
 #include "Scene.hpp"
-#include "Properties.hpp"
+#include "AppState.hpp"
 
 #include <functional>
 
@@ -35,7 +35,7 @@ public:
 private:
     void setup();
 
-    void initProperties();
+    void initState();
 
     void invalidate();
 
@@ -46,5 +46,4 @@ private:
     std::shared_ptr<VulkanDevice> _device;
     std::shared_ptr<Scene> _scene;
     std::shared_ptr<VulkanRenderer> _renderer;
-    std::shared_ptr<Properties> _properties;
 };

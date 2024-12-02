@@ -7,7 +7,6 @@
 #include "VulkanSwapchain.hpp"
 #include "VulkanCommandPool.hpp"
 #include "VulkanImage.hpp"
-
 #include <array>
 
 class VulkanRenderer {
@@ -42,6 +41,8 @@ public:
 
     [[nodiscard]] VkFormat depthFormat() const;
 
+    [[nodiscard]] uint32 colorBufferCount() const;
+
 
 private:
     void createCommandPool();
@@ -68,7 +69,7 @@ private:
     std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _acquireImageSemaphore;
     std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _renderingFinishedSemaphore;
     std::array<VkFence, MAX_IN_FLIGHT_FRAMES> _inFlightFrame;
-    int currentFrame{};
+    int _currentFrame{};
     VkSubmitInfo _renderSubmitInfo;
     VkPresentInfoKHR _presentInfo;
 

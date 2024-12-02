@@ -3,7 +3,7 @@
 #include "Types.hpp"
 #include "event/Events.hpp"
 #include "VulkanDevice.hpp"
-#include "Properties.hpp"
+#include "AppState.hpp"
 
 #include <span>
 
@@ -26,8 +26,6 @@ public:
 
     virtual void update() {};
 
-    void set(std::shared_ptr<Properties> properties);
-
     void invalidate0();
 
     void refresh();
@@ -37,7 +35,6 @@ public:
 protected:
     std::shared_ptr<VulkanDevice> _device;
     std::shared_ptr<VulkanCommandPool> _commandPool;
-    std::shared_ptr<Properties> _properties;
     VkCommandBufferInheritanceInfo _inheritanceInfo;
     VkCommandBufferInheritanceRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
     uint32 width;

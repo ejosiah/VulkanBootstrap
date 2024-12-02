@@ -78,8 +78,7 @@ VulkanApplication VulkanApplication::bootStrap(SceneFactory&& sceneFactory) {
 void VulkanApplication::setup() {
     Time::Init();
     _renderer->init();
-    initProperties();
-    _scene->set(_properties);
+    initState();
     _scene->init0();
 }
 
@@ -109,18 +108,19 @@ void VulkanApplication::processEvents() {
     }
 }
 
-void VulkanApplication::initProperties() {
-    _properties = std::make_shared<Properties>();
-    _properties->width = _renderer->width();
-    _properties->height = _renderer->height();
-    _properties->framesInFlight = _renderer->framesInFlight();
-    _properties->samples = _renderer->samples();
-    _properties->colorFormat = _renderer->format();
-    _properties->depthFormat = _renderer->depthFormat();
+void VulkanApplication::initState() {
+    AppState::screenWidth = _renderer->width();
+    AppState::screenHeight = _renderer->height();
+    AppState::numFramesInFlight = _renderer->framesInFlight();
+    AppState::screenSampleCount = _renderer->samples();
+    AppState::screenFormat = _renderer->format();
+    AppState::screenDepthFormat = _renderer->depthFormat();
+    AppState::colorBufferCount = _renderer->colorBufferCount();
+    AppState::currentFrame = 0;
 }
 
 void VulkanApplication::invalidate() {
     _renderer->invalidateSwapchain();
-    initProperties();
+    initState();
     _scene->refresh();
 }

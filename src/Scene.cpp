@@ -19,15 +19,11 @@ void Scene::init0() {
     init();
 }
 
-void Scene::set(std::shared_ptr<Properties> properties) {
-    _properties = std::move(properties);
-}
-
 void Scene::invalidate0() {
     _renderingInfo.colorAttachmentCount = 1;
-    _renderingInfo.pColorAttachmentFormats = &_properties->colorFormat;
-    _renderingInfo.depthAttachmentFormat = _properties->depthFormat;
-    _renderingInfo.rasterizationSamples = _properties->samples;
+    _renderingInfo.pColorAttachmentFormats = &AppState::screenFormat;
+    _renderingInfo.depthAttachmentFormat = AppState::screenDepthFormat;
+    _renderingInfo.rasterizationSamples = AppState::screenSampleCount;
     _inheritanceInfo.pNext = &_renderingInfo;
 }
 

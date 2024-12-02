@@ -2,6 +2,7 @@
 #include "VulkanRenderer.hpp"
 #include "event/Events.hpp"
 #include "WindowInterface.hpp"
+#include "AppState.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -28,34 +29,35 @@ void VulkanRenderer::init() {
 }
 
 void VulkanRenderer::renderFrame(VkCommandBuffer commandBuffer) {
-    vkWaitForFences(*_device, 1, &_inFlightFrame[currentFrame], false, UINT64_MAX);
+    vkWaitForFences(*_device, 1, &_inFlightFrame[_currentFrame], false, UINT64_MAX);
 
     uint32 imageIndex = ~0u;
-    auto status = vkAcquireNextImageKHR(*_device, *_swapchain, UINT64_MAX, _acquireImageSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    auto status = vkAcquireNextImageKHR(*_device, *_swapchain, UINT64_MAX, _acquireImageSemaphore[_currentFrame], VK_NULL_HANDLE, &imageIndex);
     if(status == VK_SUBOPTIMAL_KHR || status == VK_ERROR_OUT_OF_DATE_KHR){
         EventBus::Publish(Events::Invalidate);
         return;
     }
 
-    vkResetFences(*_device, 1, &_inFlightFrame[currentFrame]);
+    vkResetFences(*_device, 1, &_inFlightFrame[_currentFrame]);
 
     _depthBuffer.attachment.imageView = *_depthBuffer.imageView[imageIndex];
     _renderingInfo.pColorAttachments = &_colorBuffer.attachment[imageIndex];
     recordScene(commandBuffer);
 
-    _renderSubmitInfo.pCommandBuffers = &_renderCommandBuffer[currentFrame];
-    _renderSubmitInfo.pWaitSemaphores = &_acquireImageSemaphore[currentFrame];
-    _renderSubmitInfo.pSignalSemaphores = &_renderingFinishedSemaphore[currentFrame];
-    vkQueueSubmit(_device->getGraphicsQueue(), 1, &_renderSubmitInfo, _inFlightFrame[currentFrame]);
+    _renderSubmitInfo.pCommandBuffers = &_renderCommandBuffer[_currentFrame];
+    _renderSubmitInfo.pWaitSemaphores = &_acquireImageSemaphore[_currentFrame];
+    _renderSubmitInfo.pSignalSemaphores = &_renderingFinishedSemaphore[_currentFrame];
+    vkQueueSubmit(_device->getGraphicsQueue(), 1, &_renderSubmitInfo, _inFlightFrame[_currentFrame]);
 
-    _presentInfo.pWaitSemaphores = &_renderingFinishedSemaphore[currentFrame];
+    _presentInfo.pWaitSemaphores = &_renderingFinishedSemaphore[_currentFrame];
     _presentInfo.pImageIndices = &imageIndex;
     status = vkQueuePresentKHR(_device->getPresentQueue(), &_presentInfo);
     if(status == VK_SUBOPTIMAL_KHR || status == VK_ERROR_OUT_OF_DATE_KHR){
         EventBus::Publish(Events::Invalidate);
         return;
     }
-    currentFrame = (currentFrame + 1 ) % MAX_IN_FLIGHT_FRAMES;
+    _currentFrame = (_currentFrame + 1 ) % MAX_IN_FLIGHT_FRAMES;
+    AppState::currentFrame = _currentFrame;
 }
 
 void VulkanRenderer::createCommandPool() {
@@ -194,13 +196,13 @@ void VulkanRenderer::initFrameBufferPrimitives() {
 
 void VulkanRenderer::recordScene(VkCommandBuffer sceneCommandBuffer) {
     VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-    vkBeginCommandBuffer(_renderCommandBuffer[currentFrame], &beginInfo);
-    vkCmdBeginRendering(_renderCommandBuffer[currentFrame], &_renderingInfo);
+    vkBeginCommandBuffer(_renderCommandBuffer[_currentFrame], &beginInfo);
+    vkCmdBeginRendering(_renderCommandBuffer[_currentFrame], &_renderingInfo);
 
-    vkCmdExecuteCommands(_renderCommandBuffer[currentFrame], 1, &sceneCommandBuffer);
+    vkCmdExecuteCommands(_renderCommandBuffer[_currentFrame], 1, &sceneCommandBuffer);
 
-    vkCmdEndRendering(_renderCommandBuffer[currentFrame]);
-    vkEndCommandBuffer(_renderCommandBuffer[currentFrame]);
+    vkCmdEndRendering(_renderCommandBuffer[_currentFrame]);
+    vkEndCommandBuffer(_renderCommandBuffer[_currentFrame]);
 }
 
 void VulkanRenderer::clearColor(float r, float g, float b, float a) {
@@ -248,4 +250,8 @@ VkFormat VulkanRenderer::depthFormat() const {
 
 uint32 VulkanRenderer::framesInFlight() const {
     return MAX_IN_FLIGHT_FRAMES;
+}
+
+uint32 VulkanRenderer::colorBufferCount() const {
+    return _swapchain->imageCount();
 }
