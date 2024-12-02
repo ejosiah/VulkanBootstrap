@@ -16,7 +16,8 @@ public:
             std::shared_ptr<VulkanInstance> instance,
             std::shared_ptr<VulkanDevice> device,
             std::unique_ptr<VulkanSwapchain> swapchain,
-            VulkanSwapchainBuilder swapchainBuilder);
+            VulkanSwapchainBuilder swapchainBuilder,
+            VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
 
 
     void init();
@@ -55,6 +56,8 @@ private:
 
     void recordScene(VkCommandBuffer sceneCommandBuffer);
 
+    static VkSampleCountFlagBits ensureSampleCount(VkSampleCountFlagBits samples, const std::shared_ptr<VulkanDevice>& device);
+
 private:
     static constexpr int MAX_IN_FLIGHT_FRAMES = 2;
     std::shared_ptr<Window> _window;
@@ -64,6 +67,7 @@ private:
     VulkanSwapchainBuilder _swapchainBuilder;
     std::shared_ptr<VulkanCommandPool> _commandPool;
     std::vector<VkCommandBuffer> _renderCommandBuffer{};
+    VkSampleCountFlagBits _samples;
 
 
     std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _acquireImageSemaphore;
@@ -86,8 +90,10 @@ private:
         struct {
             VkImage image;
             std::unique_ptr<VulkanImageView> imageView;
+            std::unique_ptr<VulkanImageView> resolveImageView;
         } _[10];
         std::vector<VkRenderingAttachmentInfo> attachment;
+        std::vector<std::shared_ptr<VulkanImage>> msaaImages;
     } _colorBuffer;
     VkClearColorValue _clearColor{0, 0, 0, 1};
 

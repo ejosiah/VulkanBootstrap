@@ -5,6 +5,7 @@
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "vk_mem_alloc.h"
+#include "util/Bits.hpp"
 #include <utility>
 #include <format>
 
@@ -179,6 +180,12 @@ std::unique_ptr<VulkanPipeline> VulkanDevice::graphicsPipeline(VkGraphicsPipelin
     return std::make_unique<VulkanPipeline>(_device, pipeline);
 }
 
+VkPhysicalDeviceProperties VulkanDevice::getProperties() const {
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
+    return properties;
+}
+
 VulkanDeviceBuilder::VulkanDeviceBuilder(VkInstance instance)
 : _instance(instance){}
 
@@ -275,16 +282,8 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
     auto queryUniqueQueue =
             [&, queueType = _uniqueQueueTypes, previousQueueFamily = std::map<VkFlags, uint32>{}]
             (auto queueFamily, auto queueFlagBits, auto qfIndex) mutable  {
-                auto countBits = [](auto bitset){
-                    auto size = sizeof(bitset) * 8;
-                    auto sum = 0;
-                    for(auto i = 0; i < size; ++i){
-                        sum += (bitset >> i) & 1;
-                    }
-                    return sum;
-                };
 
-                auto count = countBits(queueFamily.queueFlags);
+                auto count = bits::count(queueFamily.queueFlags);
                 if((queueType & queueFlagBits) == queueFlagBits && (queueFamily.queueFlags & queueFlagBits) == queueFlagBits) {
                     if(!previousQueueFamily.contains(queueFlagBits)){
                         previousQueueFamily[queueFlagBits] = count;
@@ -313,7 +312,6 @@ VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32>&
     devFeatures13.synchronization2 = VK_TRUE;
     devFeatures13.dynamicRendering = VK_TRUE;
     devFeatures13.maintenance4 = VK_TRUE;
-
 
 
     auto queuePriority = 1.0f;

@@ -3,6 +3,7 @@
 #include "event/Events.hpp"
 #include "WindowInterface.hpp"
 #include "AppState.hpp"
+#include "util/Bits.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -14,13 +15,15 @@ VulkanRenderer::VulkanRenderer(
         std::shared_ptr<VulkanInstance> instance,
         std::shared_ptr<VulkanDevice> device,
         std::unique_ptr<VulkanSwapchain> swapchain,
-        VulkanSwapchainBuilder swapchainBuilder)
+        VulkanSwapchainBuilder swapchainBuilder,
+        VkSampleCountFlagBits samples)
         : _window(std::move(window))
         , _instance(std::move(instance))
         , _device(std::move(device))
         , _swapchain(std::move(swapchain))
-        , _swapchainBuilder(std::move(swapchainBuilder)
-        ){}
+        , _swapchainBuilder(std::move(swapchainBuilder))
+        , _samples(ensureSampleCount(samples, _device))
+        {}
 
 void VulkanRenderer::init() {
     createCommandPool();
@@ -112,22 +115,58 @@ void VulkanRenderer::destroySynchronizationPrimitives() {
 }
 
 void VulkanRenderer::initFrameBufferPrimitives() {
-    std::vector<VkImageMemoryBarrier> barriers(_swapchain->imageCount());
+    std::vector<VkImageMemoryBarrier> barriers;
+    if(_samples != VK_SAMPLE_COUNT_1_BIT){
+        _colorBuffer.msaaImages.clear();
+        _colorBuffer.msaaImages.resize(_swapchain->imageCount());
+    }
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
-        _colorBuffer._[i].image = _swapchain->getImage(i);
+        if(_samples != VK_SAMPLE_COUNT_1_BIT){
+            _colorBuffer.msaaImages[i] =
+                _device->image()
+                    .imageType(VK_IMAGE_TYPE_2D)
+                    .format(_swapchain->format())
+                    .width(_swapchain->width())
+                    .height(_swapchain->height())
+                    .usage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+                    .samples(_samples)
+                .make_shared();
+        }
+
+        auto image = (_samples == VK_SAMPLE_COUNT_1_BIT) ? _swapchain->getImage(i) : *_colorBuffer.msaaImages[i];
+        _colorBuffer._[i].image = image;
         _colorBuffer._[i].imageView =
             _device->imageView()
-                    .image(_swapchain->getImage(i))
+                    .image(image)
                     .format(_swapchain->format())
                 .make_unique();
 
-        barriers[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barriers[i].srcAccessMask = VK_ACCESS_NONE;
-        barriers[i].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-        barriers[i].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        barriers[i].newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        barriers[i].image = _swapchain->getImage(i);
-        barriers[i].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        if(_samples != VK_SAMPLE_COUNT_1_BIT) {
+            _colorBuffer._[i].resolveImageView =
+                _device->imageView()
+                    .image(_swapchain->getImage(i))
+                    .format(_swapchain->format())
+                .make_unique();
+        }
+
+        VkImageMemoryBarrier barrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_NONE,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .image = _swapchain->getImage(i),
+            .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
+        };
+        barriers.push_back(barrier);
+
+        if(_samples != VK_SAMPLE_COUNT_1_BIT) {
+            barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            barrier.image = *_colorBuffer.msaaImages[i];
+            barriers.push_back(barrier);
+        }
+
     }
 
     _commandPool->oneTime([&](auto commandBuffer){
@@ -142,6 +181,7 @@ void VulkanRenderer::initFrameBufferPrimitives() {
             .width(_swapchain->width())
             .height(_swapchain->height())
             .usage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            .samples(_samples)
         .make_unique();
 
     _depthBuffer.imageView.resize(_swapchain->imageCount());
@@ -170,18 +210,21 @@ void VulkanRenderer::initFrameBufferPrimitives() {
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
         VkRenderingAttachmentInfo attachment{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
         attachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        attachment.resolveMode = VK_RESOLVE_MODE_NONE;
         attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         attachment.imageView = *_colorBuffer._[i].imageView;
         attachment.clearValue.color = _clearColor;
+        if(_samples != VK_SAMPLE_COUNT_1_BIT){
+            attachment.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+            attachment.resolveImageView = *_colorBuffer._[i].resolveImageView;
+            attachment.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        }
         _colorBuffer.attachment[i] = attachment;
     }
 
 
     _depthBuffer.attachment = { VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     _depthBuffer.attachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-    _depthBuffer.attachment.resolveMode = VK_RESOLVE_MODE_NONE;
     _depthBuffer.attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     _depthBuffer.attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     _depthBuffer.attachment.clearValue.depthStencil = {1.f, 0u};
@@ -237,7 +280,7 @@ uint32 VulkanRenderer::height() const {
 }
 
 VkSampleCountFlagBits VulkanRenderer::samples() const {
-    return VK_SAMPLE_COUNT_1_BIT; // TODO query renderer / swapchain for this info
+    return _samples;
 }
 
 VkFormat VulkanRenderer::format() const {
@@ -254,4 +297,18 @@ uint32 VulkanRenderer::framesInFlight() const {
 
 uint32 VulkanRenderer::colorBufferCount() const {
     return _swapchain->imageCount();
+}
+
+VkSampleCountFlagBits
+VulkanRenderer::ensureSampleCount(VkSampleCountFlagBits samples, const std::shared_ptr<VulkanDevice>& device) {
+    if(samples == VK_SAMPLE_COUNT_1_BIT) return samples;
+
+    auto limits = device->getProperties().limits;
+    auto supportedSamples = limits.framebufferColorSampleCounts & limits.framebufferDepthSampleCounts;
+    auto maxSupportedSamples =  to<VkSampleCountFlagBits>(bits::findHighestBitSet(supportedSamples));
+
+    if(samples & maxSupportedSamples){
+        return samples;
+    }
+    return maxSupportedSamples;
 }
