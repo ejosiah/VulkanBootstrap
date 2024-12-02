@@ -30,12 +30,9 @@ public:
 
     void invalidate() override;
 
-    void allocateCommandBuffer();
-
-    std::span<VkCommandBuffer> record() final;
+    void record(VkCommandBuffer commandBuffer) override;
 
 private:
-    VkCommandBuffer _commandBuffer{};
     std::shared_ptr<VulkanBuffer> _cubeVertices;
     std::shared_ptr<VulkanBuffer> _cubeIndices;
     std::shared_ptr<VulkanBuffer> _transformBuffer;

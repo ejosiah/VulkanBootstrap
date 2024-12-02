@@ -15,14 +15,21 @@ public:
 
     void init0();
 
+    void initCommandBuffer();
+
     virtual void init() {}
 
     virtual std::span<VkCommandBuffer> record() {
-        VkCommandBufferBeginInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-        vkBeginCommandBuffer(_commandBuffer, &info);
-        vkEndCommandBuffer(_commandBuffer);
-        return { &_commandBuffer, 1 };
+        auto commandBuffer = _commandBuffer[AppState::currentFrame];
+        if(_dynamicScene){
+            record0(commandBuffer);
+        }
+        return { &commandBuffer, 1 };
     };
+
+    void record0(VkCommandBuffer commandBuffer);
+
+    virtual void record(VkCommandBuffer commandBuffer) {};
 
     virtual void update() {};
 
@@ -33,15 +40,17 @@ public:
     virtual void invalidate(){};
 
 protected:
+    void dynamicScene();
+
+protected:
     std::shared_ptr<VulkanDevice> _device;
     std::shared_ptr<VulkanCommandPool> _commandPool;
     VkCommandBufferInheritanceInfo _inheritanceInfo;
     VkCommandBufferInheritanceRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
-    uint32 width;
-    uint32 height;
+    bool _dynamicScene{};
 
 private:
-    VkCommandBuffer _commandBuffer{};
+    std::vector<VkCommandBuffer> _commandBuffer;
 };
 
 class TestScene : public Scene {

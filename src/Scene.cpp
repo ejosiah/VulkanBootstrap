@@ -14,9 +14,9 @@ Scene::Scene(std::shared_ptr<VulkanDevice> device)
 
 void Scene::init0() {
     _commandPool = _device->createCommandPool(VK_QUEUE_GRAPHICS_BIT);
-    _commandBuffer = _commandPool->allocateOne(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
     invalidate0();
     init();
+    initCommandBuffer();
 }
 
 void Scene::invalidate0() {
@@ -30,6 +30,28 @@ void Scene::invalidate0() {
 void Scene::refresh() {
     invalidate0();
     invalidate();
+}
+
+void Scene::record0(VkCommandBuffer commandBuffer) {
+    VkCommandBufferBeginInfo beginInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+    };
+    beginInfo.pInheritanceInfo = &_inheritanceInfo;
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    record(commandBuffer);
+    vkEndCommandBuffer(commandBuffer);
+}
+
+void Scene::initCommandBuffer() {
+    _commandBuffer = _commandPool->allocate(AppState::numFramesInFlight, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    for(auto cb : _commandBuffer) {
+        record0(cb);
+    }
+}
+
+void Scene::dynamicScene() {
+    _dynamicScene = true;
 }
 
 

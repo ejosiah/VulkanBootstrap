@@ -88,10 +88,6 @@ void CubeScene::init() {
     Events::ClearScreen(0, 0, 0);
 }
 
-std::span<VkCommandBuffer> CubeScene::record() {
-    return { &_commandBuffer, 1};
-}
-
 void CubeScene::createBuffers() {
     auto vByteSize = sizeof(Mesh) * cube.size();
     auto iByteSize = sizeof(uint16) * indices.size();
@@ -192,7 +188,7 @@ void CubeScene::createPipeline() {
     rasterizationStateCreateInfo.lineWidth = 1;
 
     VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
-    multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;    // TODO retrieve from Properties object
+    multisampleStateCreateInfo.rasterizationSamples = AppState::screenSampleCount;
 
     VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
     depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
@@ -279,7 +275,6 @@ void CubeScene::invalidate() {
     createDescriptorSetLayout();
     updateDescriptorSet();
     createPipeline();
-    allocateCommandBuffer();
 }
 
 void CubeScene::initCamera() {
@@ -290,28 +285,19 @@ void CubeScene::initCamera() {
 //    transform[2] = GL_TO_VKN_CLIP * transform[2];
 }
 
-void CubeScene::allocateCommandBuffer() {
-    _commandBuffer = _commandPool->allocateOne(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
-    VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT | VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
-    };
-    beginInfo.pInheritanceInfo = &_inheritanceInfo;
-
-    VkDeviceSize offset = 0;
-    vkBeginCommandBuffer(_commandBuffer, &beginInfo);
-    vkCmdBindPipeline(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipeline);
-    vkCmdBindDescriptorSets(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipelineLayout, 0, 1, &_descriptorSet, 0, nullptr);
-    vkCmdBindVertexBuffers(_commandBuffer, 0, 1, *_cubeVertices, &offset);
-    vkCmdBindIndexBuffer(_commandBuffer, *_cubeIndices, 0, VK_INDEX_TYPE_UINT16);
-    vkCmdDrawIndexed(_commandBuffer, 36, 1, 0, 0, 0);
-    vkEndCommandBuffer(_commandBuffer);
-}
-
 void CubeScene::update() {
     static float angle = 0;
     static float speed = 10;
     angle =  to<float>(Time::Delta()) * speed;
     transform[0] = glm::rotate(transform[0], glm::radians(angle), {0, 1, 0});
+}
+
+void CubeScene::record(VkCommandBuffer commandBuffer) {
+    VkDeviceSize offset = 0;
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipeline);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipelineLayout, 0, 1, &_descriptorSet, 0, nullptr);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, *_cubeVertices, &offset);
+    vkCmdBindIndexBuffer(commandBuffer, *_cubeIndices, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdDrawIndexed(commandBuffer, 36, 1, 0, 0, 0);
 }
 
