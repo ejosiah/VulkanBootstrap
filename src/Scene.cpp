@@ -34,8 +34,8 @@ void Scene::refresh() {
 
 void Scene::record0(VkCommandBuffer commandBuffer) {
     VkCommandBufferBeginInfo beginInfo{
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-            .flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
     };
     beginInfo.pInheritanceInfo = &_inheritanceInfo;
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -52,6 +52,14 @@ void Scene::initCommandBuffer() {
 
 void Scene::dynamicScene() {
     _dynamicScene = true;
+}
+
+std::span<VkCommandBuffer> Scene::record() {
+    auto commandBuffer = _commandBuffer[AppState::currentFrame];
+    if(_dynamicScene){
+        record0(commandBuffer);
+    }
+    return { &commandBuffer, 1 };
 }
 
 

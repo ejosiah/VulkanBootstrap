@@ -19,13 +19,7 @@ public:
 
     virtual void init() {}
 
-    virtual std::span<VkCommandBuffer> record() {
-        auto commandBuffer = _commandBuffer[AppState::currentFrame];
-        if(_dynamicScene){
-            record0(commandBuffer);
-        }
-        return { &commandBuffer, 1 };
-    };
+    virtual std::span<VkCommandBuffer> record();
 
     void record0(VkCommandBuffer commandBuffer);
 

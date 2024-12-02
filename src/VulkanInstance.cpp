@@ -1,9 +1,10 @@
 #include "Types.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDebugMessenger.hpp"
-
+#include "WindowInterface.hpp"
 #include <spdlog/spdlog.h>
 #include <iostream>
+#include <utility>
 
 
 
@@ -14,6 +15,9 @@ VulkanInstance::VulkanInstance(const VkInstanceCreateInfo &createInfo, VkInstanc
 {}
 
 VulkanInstance::~VulkanInstance() {
+    if(_surface){
+       vkDestroySurfaceKHR(_instance, _surface, nullptr);
+    }
     vkDestroyInstance(_instance, VK_NULL_HANDLE);
 }
 
@@ -23,6 +27,14 @@ VulkanInstanceBuilder VulkanInstance::builder() {
 
 VkInstance VulkanInstance::handle() const {
     return _instance;
+}
+
+void VulkanInstance::set(VkSurfaceKHR surface) {
+    _surface = surface;
+}
+
+VkSurfaceKHR VulkanInstance::surface() const {
+    return _surface;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::appName(std::string_view value) {
@@ -99,5 +111,15 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
         return {};
     }
 
-    return std::make_shared<VulkanInstance>(createInfo, instance);
+    auto appInstance = std::make_shared<VulkanInstance>(createInfo, instance);
+    if(_window){
+        appInstance->set(_window->createSurface(instance));
+    }
+    return appInstance;
+}
+
+VulkanInstanceBuilder &VulkanInstanceBuilder::addWindow(std::shared_ptr<Window> window) {
+    addExtensions(WindowInterface::extensions());
+    _window = std::move(window);
+    return *this;
 }

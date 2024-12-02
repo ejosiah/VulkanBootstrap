@@ -40,10 +40,10 @@ private:
     void invalidate();
 
 private:
-    std::shared_ptr<Window> _window;
     std::shared_ptr<VulkanInstance> _instance;
+    std::shared_ptr<Window> _window;
     std::shared_ptr<VulkanDebugMessenger> _debugMessenger;
     std::shared_ptr<VulkanDevice> _device;
-    std::shared_ptr<Scene> _scene;
     std::shared_ptr<VulkanRenderer> _renderer;
+    std::shared_ptr<Scene> _scene;
 };

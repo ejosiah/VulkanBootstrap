@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "WindowInterface.hpp"
 
 
 class VulkanInstanceBuilder;
@@ -15,6 +16,10 @@ public:
 
     ~VulkanInstance();
 
+    void set(VkSurfaceKHR surface);
+
+    VkSurfaceKHR surface() const;
+
 public:
     static VulkanInstanceBuilder builder();
 
@@ -24,7 +29,7 @@ private:
     VkApplicationInfo _appInfo;
     VkInstanceCreateInfo _createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
     VkInstance _instance{};
-
+    VkSurfaceKHR _surface{};
 };
 
 class VulkanInstanceBuilder{
@@ -42,6 +47,8 @@ public:
 
     VulkanInstanceBuilder& addExtensions(std::vector<const char*> extension);
 
+    VulkanInstanceBuilder& addWindow(std::shared_ptr<Window> window);
+
     std::shared_ptr<VulkanInstance> make_shared();
 
 private:
@@ -53,4 +60,5 @@ private:
 
     std::vector<const char*> _enabledLayers;
     std::vector<const char*> _enabledExtensions;
+    std::shared_ptr<Window> _window;
 };

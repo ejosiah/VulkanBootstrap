@@ -83,6 +83,8 @@ class VulkanPipelineLayout {
 public:
     explicit VulkanPipelineLayout(VkDevice device, VkPipelineLayout _layout);
 
+    ~VulkanPipelineLayout();
+
     operator VkPipelineLayout() const;
 
     operator VkPipelineLayout*();

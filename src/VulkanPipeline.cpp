@@ -131,6 +131,10 @@ VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout lay
 : _device(device)
 , _layout(layout){}
 
+VulkanPipelineLayout::~VulkanPipelineLayout() {
+    vkDestroyPipelineLayout(_device, _layout, nullptr);
+}
+
 VulkanPipelineLayout::operator VkPipelineLayout() const {
     return _layout;
 }
