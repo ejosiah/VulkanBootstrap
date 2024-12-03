@@ -287,7 +287,7 @@ void CubeScene::initCamera() {
 
 void CubeScene::update() {
     static float angle = 0;
-    static float speed = 10;
+    static float speed = 100;
     angle =  to<float>(Time::Delta()) * speed;
     transform[0] = glm::rotate(transform[0], glm::radians(angle), {0, 1, 0});
 }
