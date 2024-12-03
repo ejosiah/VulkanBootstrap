@@ -115,11 +115,12 @@ void VulkanRenderer::destroySynchronizationPrimitives() {
 }
 
 void VulkanRenderer::initFrameBufferPrimitives() {
-    std::vector<VkImageMemoryBarrier> barriers;
     if(_samples != VK_SAMPLE_COUNT_1_BIT){
         _colorBuffer.msaaImages.clear();
         _colorBuffer.msaaImages.resize(_swapchain->imageCount());
     }
+
+    std::vector<VkImageMemoryBarrier2> barriers;
     for(auto i = 0; i < _swapchain->imageCount(); ++i){
         if(_samples != VK_SAMPLE_COUNT_1_BIT){
             _colorBuffer.msaaImages[i] =
@@ -149,15 +150,18 @@ void VulkanRenderer::initFrameBufferPrimitives() {
                 .make_unique();
         }
 
-        VkImageMemoryBarrier barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        VkImageMemoryBarrier2 barrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .srcStageMask = VK_PIPELINE_STAGE_HOST_BIT,
             .srcAccessMask = VK_ACCESS_NONE,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             .image = _swapchain->getImage(i),
             .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
         };
+
         barriers.push_back(barrier);
 
         if(_samples != VK_SAMPLE_COUNT_1_BIT) {
@@ -169,8 +173,14 @@ void VulkanRenderer::initFrameBufferPrimitives() {
 
     }
 
+    VkDependencyInfo info{
+            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+            .imageMemoryBarrierCount = to<uint32>(barriers.size()),
+            .pImageMemoryBarriers = barriers.data()
+    };
+
     _commandPool->oneTime([&](auto commandBuffer){
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, barriers.size(), barriers.data());
+        vkCmdPipelineBarrier2(commandBuffer, &info);
     });
 
 
@@ -194,16 +204,21 @@ void VulkanRenderer::initFrameBufferPrimitives() {
                 .make_unique();
     }
 
-    VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    VkImageMemoryBarrier2 barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+    barrier.srcStageMask = VK_PIPELINE_STAGE_HOST_BIT;
     barrier.srcAccessMask = VK_ACCESS_NONE;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     barrier.image = *_depthBuffer.image;
     barrier.subresourceRange = _depthBuffer.imageView.front()->spec.subresourceRange;
 
+    info.imageMemoryBarrierCount = 1;
+    info.pImageMemoryBarriers = &barrier;
+
     _commandPool->oneTime([&](auto commandBuffer){
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        vkCmdPipelineBarrier2(commandBuffer, &info);
     });
 
     _colorBuffer.attachment.resize(_swapchain->imageCount());
