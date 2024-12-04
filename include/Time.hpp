@@ -2,21 +2,20 @@
 
 class Time {
 public:
-    static void Init();
+    void tick();
+    [[nodiscard]] double delta() const;
+    [[nodiscard]] double elapsed() const;
+    [[nodiscard]] double now() const;
 
-    static void Tick();
-
-    static double Delta();
-
-    static double Elapsed();
-
-    static double Now();
+    static Time& instance() {
+        static Time time{};
+        return time;
+    }
 
 private:
     Time() = default;
 
-private:
-    static double now_;
-    static double elapsed_;
-    static double delta_;
+    double now_{};
+    double elapsed_{};
+    double delta_{};
 };

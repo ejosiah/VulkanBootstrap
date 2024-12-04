@@ -24,13 +24,12 @@ VulkanApplication::VulkanApplication(
 
 void VulkanApplication::run() {
     setup();
-
     while(window_->isActive()) {
         appState_.currentFrame_ = renderer_->currentFrame();
         processEvents();
         scene_->update();
         renderer_->renderFrame(scene_->record().front());
-        Time::Tick();
+        Time::instance().tick();
     }
 
     shutdown();
@@ -79,7 +78,6 @@ VulkanApplication VulkanApplication::bootStrap(SceneFactory&& sceneFactory) {
 }
 
 void VulkanApplication::setup() {
-    Time::Init();
     renderer_->init();
     initState();
     scene_->init0();
