@@ -38,6 +38,6 @@ private:
 
 private:
     VkDevice _device;
-     Code _code;
+    Code _code;
     VkShaderModuleCreateInfo _info{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 };

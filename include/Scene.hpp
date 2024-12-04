@@ -9,7 +9,7 @@
 
 class Scene {
 public:
-    Scene(std::shared_ptr<VulkanDevice> _device);
+    Scene(std::shared_ptr<VulkanDevice> _device, const AppState& appState);
 
     virtual ~Scene() = default;
 
@@ -17,27 +17,28 @@ public:
 
     void initCommandBuffer();
 
-    virtual void init() {}
+    virtual void init() = 0;
 
     virtual std::span<VkCommandBuffer> record();
 
     void record0(VkCommandBuffer commandBuffer);
 
-    virtual void record(VkCommandBuffer commandBuffer) {};
+    virtual void record(VkCommandBuffer commandBuffer);
 
-    virtual void update() {};
+    virtual void update();
 
     void invalidate0();
 
     void refresh();
 
-    virtual void invalidate(){};
+    virtual void invalidate();
 
 protected:
     void dynamicScene();
 
 protected:
     std::shared_ptr<VulkanDevice> _device;
+    const AppState& _appState;
     std::shared_ptr<VulkanCommandPool> _commandPool;
     VkCommandBufferInheritanceInfo _inheritanceInfo;
     VkCommandBufferInheritanceRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
@@ -49,7 +50,7 @@ private:
 
 class TestScene : public Scene {
 public:
-    TestScene(std::shared_ptr<VulkanDevice> _device);
+    TestScene(std::shared_ptr<VulkanDevice> _device, const AppState& appState);
 
     void update() final;
 

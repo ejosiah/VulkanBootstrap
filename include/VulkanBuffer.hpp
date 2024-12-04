@@ -9,9 +9,10 @@
 class VulkanBuffer {
 public:
     const VkBufferCreateInfo spec;
-    const VmaMemoryUsage  memoryUsage;
+    const VmaAllocationCreateInfo  allocationSpec;
 
-    VulkanBuffer(VmaAllocator allocator, VmaAllocation allocation, VkBuffer buffer, VkBufferCreateInfo _spec, VmaMemoryUsage usage);
+    VulkanBuffer(VmaAllocator allocator, VmaAllocation allocation, VkBuffer buffer,
+                 VkBufferCreateInfo spec, VmaAllocationCreateInfo allocSpec);
 
     ~VulkanBuffer();
 

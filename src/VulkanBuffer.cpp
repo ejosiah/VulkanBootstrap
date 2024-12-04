@@ -1,12 +1,12 @@
 #include "Types.hpp"
 #include "VulkanBuffer.hpp"
 
-VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VmaAllocation allocation, VkBuffer buffer, VkBufferCreateInfo spec, VmaMemoryUsage usage)
+VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VmaAllocation allocation, VkBuffer buffer, VkBufferCreateInfo aSpec, VmaAllocationCreateInfo allocSpec)
 : _allocator(allocator)
 , _allocation(allocation)
 , _buffer(buffer)
-, spec(spec)
-, memoryUsage(usage){}
+, spec(aSpec)
+, allocationSpec(allocSpec){}
 
 VulkanBuffer::~VulkanBuffer() {
     if(_mapping){
@@ -16,7 +16,7 @@ VulkanBuffer::~VulkanBuffer() {
 }
 
 void *VulkanBuffer::map() {
-    if(memoryUsage == VMA_MEMORY_USAGE_GPU_ONLY){
+    if(allocationSpec.usage == VMA_MEMORY_USAGE_GPU_ONLY){
         return nullptr;
     };
     vmaMapMemory(_allocator, _allocation, &_mapping);
@@ -79,5 +79,5 @@ std::shared_ptr<VulkanBuffer> VulkanBufferCreator::make_shared() {
     VmaAllocation allocation;
     vmaCreateBuffer(_allocator, &_info, &allocInfo, &buffer, &allocation, nullptr);
 
-    return std::make_shared<VulkanBuffer>(_allocator, allocation, buffer, _info, _memoryUsage);
+    return std::make_shared<VulkanBuffer>(_allocator, allocation, buffer, _info, allocInfo);
 }

@@ -14,7 +14,7 @@
 
 class VulkanApplication {
 public:
-    using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>)>;
+    using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>, const AppState&)>;
 
     VulkanApplication(
         std::shared_ptr<Window> window,
@@ -22,7 +22,8 @@ public:
         std::shared_ptr<VulkanDebugMessenger> debugMessenger,
         std::shared_ptr<VulkanDevice> device,
         std::shared_ptr<VulkanRenderer> renderer,
-        std::shared_ptr<Scene> scene);
+        std::shared_ptr<Scene> scene,
+        AppState& appState);
 
     void run();
 
@@ -46,4 +47,5 @@ private:
     std::shared_ptr<VulkanDevice> _device;
     std::shared_ptr<VulkanRenderer> _renderer;
     std::shared_ptr<Scene> _scene;
+    AppState& _appState;
 };

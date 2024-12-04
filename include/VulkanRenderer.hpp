@@ -44,6 +44,7 @@ public:
 
     [[nodiscard]] uint32 colorBufferCount() const;
 
+    [[nodiscard]] uint32 currentFrame() const;
 
 private:
     void createCommandPool();

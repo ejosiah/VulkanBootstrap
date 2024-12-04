@@ -66,3 +66,7 @@ VulkanCommandPool::make_shared(VkDevice device, VkQueue queue, uint32 queueFamil
     vkCreateCommandPool(device, &createInfo, nullptr, &commandPool);
     return std::make_shared<VulkanCommandPool>(device, queue, commandPool);
 }
+
+void VulkanCommandPool::reset() {
+    vkResetCommandPool(_device, _commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT );
+}

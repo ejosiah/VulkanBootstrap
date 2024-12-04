@@ -6,7 +6,6 @@ public:
 
     static void Tick();
 
-
     static double Delta();
 
     static double Elapsed();

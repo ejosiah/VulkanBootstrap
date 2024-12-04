@@ -5,8 +5,9 @@
 
 #include <utility>
 
-Scene::Scene(std::shared_ptr<VulkanDevice> device)
+Scene::Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState)
 : _device(std::move(device))
+, _appState(appState)
 , _inheritanceInfo{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
     .pNext = &_renderingInfo
@@ -20,16 +21,19 @@ void Scene::init0() {
 }
 
 void Scene::invalidate0() {
+    static VkFormat format;
+
     _renderingInfo.colorAttachmentCount = 1;
-    _renderingInfo.pColorAttachmentFormats = &AppState::screenFormat;
-    _renderingInfo.depthAttachmentFormat = AppState::screenDepthFormat;
-    _renderingInfo.rasterizationSamples = AppState::screenSampleCount;
+    _renderingInfo.pColorAttachmentFormats = &format;
+    _renderingInfo.depthAttachmentFormat = _appState.screenDepthFormat();
+    _renderingInfo.rasterizationSamples = _appState.screenSampleCount();
     _inheritanceInfo.pNext = &_renderingInfo;
 }
 
 void Scene::refresh() {
     invalidate0();
     invalidate();
+    initCommandBuffer();
 }
 
 void Scene::record0(VkCommandBuffer commandBuffer) {
@@ -44,7 +48,8 @@ void Scene::record0(VkCommandBuffer commandBuffer) {
 }
 
 void Scene::initCommandBuffer() {
-    _commandBuffer = _commandPool->allocate(AppState::numFramesInFlight, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    _commandPool->reset();
+    _commandBuffer = _commandPool->allocate(_appState.numFramesInFlight(), VK_COMMAND_BUFFER_LEVEL_SECONDARY);
     for(auto cb : _commandBuffer) {
         record0(cb);
     }
@@ -55,16 +60,22 @@ void Scene::dynamicScene() {
 }
 
 std::span<VkCommandBuffer> Scene::record() {
-    auto commandBuffer = _commandBuffer[AppState::currentFrame];
+    auto commandBuffer = _commandBuffer[_appState.currentFrame()];
     if(_dynamicScene){
         record0(commandBuffer);
     }
     return { &commandBuffer, 1 };
 }
 
+void Scene::record(VkCommandBuffer commandBuffer) {}
 
-TestScene::TestScene(std::shared_ptr<VulkanDevice> _device)
-: Scene(std::move(_device)) {}
+void Scene::update() {}
+
+void Scene::invalidate() {}
+
+
+TestScene::TestScene(std::shared_ptr<VulkanDevice> _device, const AppState& appState)
+: Scene(std::move(_device), appState) {}
 
 void TestScene::update() {
     static int period = 5;

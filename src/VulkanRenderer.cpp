@@ -60,7 +60,6 @@ void VulkanRenderer::renderFrame(VkCommandBuffer commandBuffer) {
         return;
     }
     _currentFrame = (_currentFrame + 1 ) % MAX_IN_FLIGHT_FRAMES;
-    AppState::currentFrame = _currentFrame;
 }
 
 void VulkanRenderer::createCommandPool() {
@@ -326,4 +325,8 @@ VulkanRenderer::ensureSampleCount(VkSampleCountFlagBits samples, const std::shar
         return samples;
     }
     return maxSupportedSamples;
+}
+
+uint32 VulkanRenderer::currentFrame() const {
+    return _currentFrame;
 }

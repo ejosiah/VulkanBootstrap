@@ -8,7 +8,7 @@
 
 class CubeScene : public Scene {
 public:
-    CubeScene(std::shared_ptr<VulkanDevice> device);
+    CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appState);
 
     ~CubeScene() override = default;
 

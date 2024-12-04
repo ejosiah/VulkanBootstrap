@@ -79,8 +79,8 @@ inline glm::mat4 vulkan_perspective(float fovy, float aspect, float zNear, float
     return Result;
 }
 
-CubeScene::CubeScene(std::shared_ptr<VulkanDevice> device)
-        : Scene(std::move(device)) {}
+CubeScene::CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appState)
+        : Scene(std::move(device), appState) {}
 
 void CubeScene::init() {
     createBuffers();
@@ -92,8 +92,6 @@ void CubeScene::createBuffers() {
     auto vByteSize = sizeof(Mesh) * cube.size();
     auto iByteSize = sizeof(uint16) * indices.size();
     auto byteSize = vByteSize + iByteSize;
-
-    auto mesh = cube;
 
     _cubeVertices =
         _device->buffer()
@@ -140,7 +138,6 @@ void CubeScene::createBuffers() {
 }
 
 void CubeScene::createPipeline() {
-
     auto vertexShader =  _device->shader().code("../../resources/shaders/cube.vert.spv").make_shared();
     auto fragmentShader =  _device->shader().code("../../resources/shaders/cube.frag.spv").make_shared();
 
@@ -173,8 +170,8 @@ void CubeScene::createPipeline() {
 
     VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO };
 
-    VkViewport viewport{0, 0, to<float>(AppState::screenWidth), to<float>(AppState::screenHeight), 0, 1 };
-    VkRect2D scissor{ {0, 0}, {AppState::screenWidth, AppState::screenHeight }};
+    VkViewport viewport{0, 0, to<float>(_appState.screenWidth()), to<float>(_appState.screenHeight()), 0, 1 };
+    VkRect2D scissor{ {0, 0}, {_appState.screenWidth(), _appState.screenHeight() }};
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
     viewportStateCreateInfo.viewportCount = 1;
     viewportStateCreateInfo.pViewports = &viewport;
@@ -188,7 +185,7 @@ void CubeScene::createPipeline() {
     rasterizationStateCreateInfo.lineWidth = 1;
 
     VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
-    multisampleStateCreateInfo.rasterizationSamples = AppState::screenSampleCount;
+    multisampleStateCreateInfo.rasterizationSamples = _appState.screenSampleCount();
 
     VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
     depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
@@ -212,11 +209,11 @@ void CubeScene::createPipeline() {
             .addSetLayout(*_descriptorSetLayout)
         .make_unique();
 
-    auto colorFormat = AppState::screenFormat;
+    auto colorFormat = _appState.screenFormat();
     VkPipelineRenderingCreateInfo renderingCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
     renderingCreateInfo.colorAttachmentCount = 1;
     renderingCreateInfo.pColorAttachmentFormats = &colorFormat;
-    renderingCreateInfo.depthAttachmentFormat = AppState::screenDepthFormat;
+    renderingCreateInfo.depthAttachmentFormat = _appState.screenDepthFormat();
 
     VkGraphicsPipelineCreateInfo createInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
     createInfo.pNext = &renderingCreateInfo;
@@ -278,7 +275,7 @@ void CubeScene::invalidate() {
 }
 
 void CubeScene::initCamera() {
-    transform[2] = vulkan_perspective(glm::radians(60.f), AppState::ScreenAspectRatio(), 0.1f, 50.f);
+    transform[2] = vulkan_perspective(glm::radians(60.f), _appState.ScreenAspectRatio(), 0.1f, 50.f);
     transform[1] = glm::lookAt({0, 2, 5}, glm::vec3(0), {0, 1, 0});
     transform[0] = glm::mat4(1);
 

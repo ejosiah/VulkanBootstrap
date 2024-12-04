@@ -12,18 +12,21 @@ VulkanApplication::VulkanApplication(
     std::shared_ptr<VulkanDebugMessenger> debugMessenger,
     std::shared_ptr<VulkanDevice> device,
     std::shared_ptr<VulkanRenderer> renderer,
-    std::shared_ptr<Scene> scene)
+    std::shared_ptr<Scene> scene,
+    AppState& appState)
     : _window(std::move(window))
     , _instance(std::move(instance))
     , _debugMessenger(std::move(debugMessenger))
     , _device(std::move(device))
     , _renderer(std::move(renderer))
-    , _scene(std::move(scene)){}
+    , _scene(std::move(scene))
+    , _appState(appState){}
 
 void VulkanApplication::run() {
     setup();
 
     while(_window->isActive()) {
+        _appState.currentFrame_ = _renderer->currentFrame();
         processEvents();
         _scene->update();
         _renderer->renderFrame(_scene->record().front());
@@ -69,10 +72,10 @@ VulkanApplication VulkanApplication::bootStrap(SceneFactory&& sceneFactory) {
             .setPresentMode(VK_PRESENT_MODE_IMMEDIATE_KHR)
         .make_unique();
 
-    std::shared_ptr<Scene> scene = sceneFactory(device);
+    std::shared_ptr<Scene> scene = sceneFactory(device, AppState::instance());
     auto renderer = std::make_shared<VulkanRenderer>(window, instance, device, std::move(swapchain), scBuilder, VK_SAMPLE_COUNT_16_BIT);
 
-    return { window, instance, debugMessenger, device, renderer, scene };
+    return { window, instance, debugMessenger, device, renderer, scene, AppState::instance() };
 }
 
 void VulkanApplication::setup() {
@@ -92,11 +95,9 @@ void VulkanApplication::processEvents() {
     WindowInterface::pollEvents();
 
     while(EventBus::HasEvents()) {
-        auto event = EventBus::Poll();
-
         std::visit(overloaded{
                 [&](const InvalidateEvent e) {
-                    _renderer->invalidateSwapchain();
+                    invalidate();
                 },
                 [&](const FrameBufferResizeEvent e) {
                     EventBus::Publish(Events::Invalidate);
@@ -104,19 +105,18 @@ void VulkanApplication::processEvents() {
                 [&](const ClearScreenEvent e) {
                     _renderer->clearColor(e.r, e.g, e.b, e.a);
                 }
-        }, event);
+        }, EventBus::Poll());
     }
 }
 
 void VulkanApplication::initState() {
-    AppState::screenWidth = _renderer->width();
-    AppState::screenHeight = _renderer->height();
-    AppState::numFramesInFlight = _renderer->framesInFlight();
-    AppState::screenSampleCount = _renderer->samples();
-    AppState::screenFormat = _renderer->format();
-    AppState::screenDepthFormat = _renderer->depthFormat();
-    AppState::colorBufferCount = _renderer->colorBufferCount();
-    AppState::currentFrame = 0;
+    _appState.screenWidth_ = _renderer->width();
+    _appState.screenHeight_ = _renderer->height();
+    _appState.numFramesInFlight_ = _renderer->framesInFlight();
+    _appState.screenSampleCount_ = _renderer->samples();
+    _appState.screenFormat_ = _renderer->format();
+    _appState.screenDepthFormat_ = _renderer->depthFormat();
+    _appState.colorBufferCount_ = _renderer->colorBufferCount();
 }
 
 void VulkanApplication::invalidate() {
