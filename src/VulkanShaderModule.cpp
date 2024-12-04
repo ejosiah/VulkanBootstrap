@@ -5,41 +5,41 @@
 #include <stdexcept>
 
 VulkanShaderModule::VulkanShaderModule(VkDevice device, VkShaderModule module)
-: _device(device)
-, _module(module){}
+: device_(device)
+, module_(module){}
 
 VulkanShaderModule::~VulkanShaderModule() {
-    vkDestroyShaderModule(_device, _module, VK_NULL_HANDLE);
+    vkDestroyShaderModule(device_, module_, VK_NULL_HANDLE);
 }
 
 VulkanShaderModule::operator VkShaderModule() {
-    return _module;
+    return module_;
 }
 
 VulkanShaderModuleCreator::VulkanShaderModuleCreator(VkDevice device)
-: _device(device){}
+: device_(device){}
 
 VulkanShaderModuleCreator &VulkanShaderModuleCreator::flag(VkShaderModuleCreateFlags flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 VulkanShaderModuleCreator &VulkanShaderModuleCreator::code(VulkanShaderModuleCreator::Code code) {
-    _code = std::move(code);
+    code_ = std::move(code);
     return *this;
 }
 
 std::shared_ptr<VulkanShaderModule> VulkanShaderModuleCreator::make_shared() {
     auto code = getCode();
-    _info.codeSize = code.size() * sizeof(uint32_t);
-    _info.pCode = code.data();
+    info_.codeSize = code.size() * sizeof(uint32_t);
+    info_.pCode = code.data();
 
     VkShaderModule module;
-    auto result = vkCreateShaderModule(_device, &_info, VK_NULL_HANDLE, &module);
+    auto result = vkCreateShaderModule(device_, &info_, VK_NULL_HANDLE, &module);
     if(result != VK_SUCCESS){
         throw std::runtime_error{ "unable to create shader module"};
     }
-    return std::make_shared<VulkanShaderModule>(_device, module);
+    return std::make_shared<VulkanShaderModule>(device_, module);
 }
 
 
@@ -55,5 +55,5 @@ std::vector<uint32> VulkanShaderModuleCreator::getCode() {
             },
             [](const std::vector<uint32_t>& code) { return code; },
             [](const std::vector<uint8>& code){ return std::vector<uint32>{}; })
-        , _code);
+        , code_);
 }

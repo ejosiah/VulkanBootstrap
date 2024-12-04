@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 VulkanImageCreator::VulkanImageCreator(VkDevice device, VmaAllocator allocator)
-: _device(device)
-, _allocator(allocator)
-, _info{
+: device_(device)
+, allocator_(allocator)
+, info_{
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
@@ -21,82 +21,82 @@ VulkanImageCreator::VulkanImageCreator(VkDevice device, VmaAllocator allocator)
 }{}
 
 VulkanImageCreator &VulkanImageCreator::flags(VkImageCreateFlagBits flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::imageType(VkImageType imageType) {
-    _info.imageType = imageType;
+    info_.imageType = imageType;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::format(VkFormat format) {
-    _info.format = format;
+    info_.format = format;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::extent(VkExtent3D extent) {
-    _info.extent = extent;
+    info_.extent = extent;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::width(uint32 width) {
-    _info.extent.width = width;
+    info_.extent.width = width;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::height(uint32 height) {
-    _info.extent.height = height;
+    info_.extent.height = height;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::depth(uint32 depth) {
-    _info.extent.depth = depth;
+    info_.extent.depth = depth;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::mipLevels(int levels) {
-    _info.mipLevels = levels;
+    info_.mipLevels = levels;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::arrayLayers(int layers) {
-    _info.arrayLayers =  layers;
+    info_.arrayLayers =  layers;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::samples(VkSampleCountFlagBits samples) {
-    _info.samples = samples;
+    info_.samples = samples;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::tiling(VkImageTiling tiling) {
-    _info.tiling = tiling;
+    info_.tiling = tiling;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::usage(VkImageUsageFlagBits usage) {
-    _info.usage = usage;
+    info_.usage = usage;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::sharingMode(VkSharingMode mode) {
-    _info.sharingMode = mode;
+    info_.sharingMode = mode;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::queueFamilyIndexCount(uint32 count) {
-    _info.queueFamilyIndexCount = count;
+    info_.queueFamilyIndexCount = count;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::pQueueFamilyIndices(const uint32 *ptr) {
-    _info.pQueueFamilyIndices = ptr;
+    info_.pQueueFamilyIndices = ptr;
     return *this;
 }
 
 VulkanImageCreator &VulkanImageCreator::initialLayout(VkImageLayout layout) {
-    _info.initialLayout = layout;
+    info_.initialLayout = layout;
     return *this;
 }
 
@@ -106,7 +106,7 @@ std::tuple<VkImage, VmaAllocation> VulkanImageCreator::create() {
 
     VkImage image;
     VmaAllocation allocation;
-    auto result = vmaCreateImage(_allocator, &_info, &allocInfo, &image, &allocation, nullptr);
+    auto result = vmaCreateImage(allocator_, &info_, &allocInfo, &image, &allocation, nullptr);
 
     if(result != VK_SUCCESS) {
         throw std::runtime_error{ "unable to create image"};
@@ -116,16 +116,16 @@ std::tuple<VkImage, VmaAllocation> VulkanImageCreator::create() {
 
 std::unique_ptr<VulkanImage> VulkanImageCreator::make_unique() {
     auto [image, allocation] = create();
-    return std::make_unique<VulkanImage>(_allocator, allocation, image, _info);
+    return std::make_unique<VulkanImage>(allocator_, allocation, image, info_);
 }
 
 std::shared_ptr<VulkanImage> VulkanImageCreator::make_shared() {
     auto [image, allocation] = create();
-    return std::make_shared<VulkanImage>(_allocator, allocation, image, _info);}
+    return std::make_shared<VulkanImage>(allocator_, allocation, image, info_);}
 
 VulkanImageViewCreator::VulkanImageViewCreator(VkDevice device)
-: _device(device)
-, _info{
+: device_(device)
+, info_{
     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
@@ -136,84 +136,84 @@ VulkanImageViewCreator::VulkanImageViewCreator(VkDevice device)
 {}
 
 VulkanImageViewCreator &VulkanImageViewCreator::flags(VkImageViewCreateFlagBits flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::image(VkImage image) {
-    _info.image = image;
+    info_.image = image;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::viewType(VkImageViewType viewType) {
-    _info.viewType = viewType;
+    info_.viewType = viewType;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::format(VkFormat format) {
-    _info.format = format;
+    info_.format = format;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::componentSwizzleR(VkComponentSwizzle swizzle) {
-    _info.components.r = swizzle;
+    info_.components.r = swizzle;
     return *this;
 }
 
 
 VulkanImageViewCreator &VulkanImageViewCreator::componentSwizzleG(VkComponentSwizzle swizzle) {
-    _info.components.g = swizzle;
+    info_.components.g = swizzle;
     return *this;
 }
 
 
 VulkanImageViewCreator &VulkanImageViewCreator::componentSwizzleB(VkComponentSwizzle swizzle) {
-    _info.components.b = swizzle;
+    info_.components.b = swizzle;
     return *this;
 }
 
 
 VulkanImageViewCreator &VulkanImageViewCreator::componentSwizzleA(VkComponentSwizzle swizzle) {
-    _info.components.a = swizzle;
+    info_.components.a = swizzle;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::aspectMask(VkImageAspectFlagBits aspectMask) {
-    _info.subresourceRange.aspectMask = aspectMask;
+    info_.subresourceRange.aspectMask = aspectMask;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::baseMipLevel(uint32 level) {
-    _info.subresourceRange.baseMipLevel = level;
+    info_.subresourceRange.baseMipLevel = level;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::levelCount(uint32 count) {
-    _info.subresourceRange.levelCount = count;
+    info_.subresourceRange.levelCount = count;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::baseArrayLayer(uint32 layer) {
-    _info.subresourceRange.baseArrayLayer = layer;
+    info_.subresourceRange.baseArrayLayer = layer;
     return *this;
 }
 
 VulkanImageViewCreator &VulkanImageViewCreator::layerCount(uint32 count) {
-    _info.subresourceRange.layerCount = count;
+    info_.subresourceRange.layerCount = count;
     return *this;
 }
 
 VkImageView VulkanImageViewCreator::create() {
-    if(!_info.image){
+    if(!info_.image){
         throw std::runtime_error{ "image is not yet defined" };
     }
 
-        if(_info.format == VK_FORMAT_UNDEFINED) {
+        if(info_.format == VK_FORMAT_UNDEFINED) {
             throw std::runtime_error{ "format is undefined" };
         }
 
     VkImageView imageView;
-    auto result = vkCreateImageView(_device, &_info, VK_NULL_HANDLE, &imageView);
+    auto result = vkCreateImageView(device_, &info_, VK_NULL_HANDLE, &imageView);
 
     if(result != VK_SUCCESS){
         throw std::runtime_error{ "unable to create image view"};
@@ -223,37 +223,37 @@ VkImageView VulkanImageViewCreator::create() {
 }
 
 std::unique_ptr<VulkanImageView> VulkanImageViewCreator::make_unique() {
-    return std::make_unique<VulkanImageView>(_device, create(), _info);
+    return std::make_unique<VulkanImageView>(device_, create(), info_);
 }
 
 std::shared_ptr<VulkanImageView> VulkanImageViewCreator::make_shared() {
-    return std::make_shared<VulkanImageView>(_device, create(), _info);
+    return std::make_shared<VulkanImageView>(device_, create(), info_);
 }
 
 VulkanImage::VulkanImage(VmaAllocator allocator, VmaAllocation allocation, VkImage image,
                          const VkImageCreateInfo &aSpec)
-: _allocator(allocator)
-, _allocation(allocation)
-, _image(image)
+: allocator_(allocator)
+, allocation_(allocation)
+, image_(image)
 , spec(aSpec){}
 
 VulkanImage::~VulkanImage() {
-    vmaDestroyImage(_allocator, _image, _allocation);
+    vmaDestroyImage(allocator_, image_, allocation_);
 }
 
 VulkanImage::operator VkImage() const {
-    return _image;
+    return image_;
 }
 
 VulkanImageView::VulkanImageView(VkDevice device, VkImageView imageView, const VkImageViewCreateInfo& aSpec)
-: _device(device)
-, _imageView(imageView)
+: device_(device)
+, imageView_(imageView)
 , spec(aSpec){}
 
 VulkanImageView::~VulkanImageView() {
-    vkDestroyImageView(_device, _imageView, nullptr);
+    vkDestroyImageView(device_, imageView_, nullptr);
 }
 
 VulkanImageView::operator VkImageView() const {
-    return _imageView;
+    return imageView_;
 }

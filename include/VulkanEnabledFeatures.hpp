@@ -11,16 +11,16 @@ public:
     }
 
     [[nodiscard]] VkPhysicalDeviceFeatures get() const {
-        return _enabledFeatures;
+        return enabledFeatures_;
     }
 
     VulkanEnabledFeatures& enableGeometryShader() {
-        _enabledFeatures.geometryShader = VK_TRUE;
+        enabledFeatures_.geometryShader = VK_TRUE;
         return *this;
     }
 
 
 private:
-    VkPhysicalDeviceFeatures _enabledFeatures{};
+    VkPhysicalDeviceFeatures enabledFeatures_{};
     Referer* referer;
 };

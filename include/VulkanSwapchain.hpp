@@ -28,12 +28,12 @@ public:
     operator const VkSwapchainKHR*() const;
 
 private:
-    VkDevice _device;
-    VkSwapchainKHR _swapchain;
-    std::vector<VkImage> _images;
-    VkFormat _format{};
-    uint32_t _width{};
-    uint32_t _height{};
+    VkDevice device_;
+    VkSwapchainKHR swapchain_;
+    std::vector<VkImage> images_;
+    VkFormat format_{};
+    uint32_t width_{};
+    uint32_t height_{};
 };
 
 class VulkanSwapchainBuilder {
@@ -62,18 +62,18 @@ private:
     [[nodiscard]] VkExtent2D  getExtent() const;
 
 private:
-    std::shared_ptr<VulkanDevice> _device;
-    VkSurfaceKHR _surface{};
-    VkSurfaceCapabilitiesKHR _capabilities{};
-    std::vector<VkSurfaceFormatKHR>  _supportedFormats;
-    std::vector<VkPresentModeKHR > _supportedModes;
-    VkSwapchainKHR _swapchain{};
-    VkSwapchainKHR _oldSwapchain{};
-    uint32_t _minImageCount{2};
-    VkSurfaceFormatKHR _format{};
-    VkExtent2D _extent{};
-    VkPresentModeKHR _presentMode{VK_PRESENT_MODE_FIFO_KHR};
-    VkSurfaceTransformFlagBitsKHR _preTransform{VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR};
-    VkCompositeAlphaFlagBitsKHR _compositeAlpha{VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR};
+    std::shared_ptr<VulkanDevice> device_;
+    VkSurfaceKHR surface_{};
+    VkSurfaceCapabilitiesKHR capabilities_{};
+    std::vector<VkSurfaceFormatKHR>  supportedFormats_;
+    std::vector<VkPresentModeKHR > supportedModes_;
+    VkSwapchainKHR swapchain_{};
+    VkSwapchainKHR oldSwapchain_{};
+    uint32_t minImageCount_{2};
+    VkSurfaceFormatKHR format_{};
+    VkExtent2D extent_{};
+    VkPresentModeKHR presentMode_{VK_PRESENT_MODE_FIFO_KHR};
+    VkSurfaceTransformFlagBitsKHR preTransform_{VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR};
+    VkCompositeAlphaFlagBitsKHR compositeAlpha_{VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR};
 
 };

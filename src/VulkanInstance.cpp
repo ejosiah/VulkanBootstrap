@@ -9,16 +9,16 @@
 
 
 VulkanInstance::VulkanInstance(const VkInstanceCreateInfo &createInfo, VkInstance instance)
-: _createInfo(createInfo)
-, _appInfo(*createInfo.pApplicationInfo)
-, _instance(instance)
+: createInfo_(createInfo)
+, appInfo_(*createInfo.pApplicationInfo)
+, instance_(instance)
 {}
 
 VulkanInstance::~VulkanInstance() {
-    if(_surface){
-       vkDestroySurfaceKHR(_instance, _surface, nullptr);
+    if(surface_){
+       vkDestroySurfaceKHR(instance_, surface_, nullptr);
     }
-    vkDestroyInstance(_instance, VK_NULL_HANDLE);
+    vkDestroyInstance(instance_, VK_NULL_HANDLE);
 }
 
 VulkanInstanceBuilder VulkanInstance::builder() {
@@ -26,77 +26,77 @@ VulkanInstanceBuilder VulkanInstance::builder() {
 }
 
 VkInstance VulkanInstance::handle() const {
-    return _instance;
+    return instance_;
 }
 
 void VulkanInstance::set(VkSurfaceKHR surface) {
-    _surface = surface;
+    surface_ = surface;
 }
 
 VkSurfaceKHR VulkanInstance::surface() const {
-    return _surface;
+    return surface_;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::appName(std::string_view value) {
-    _appName = value;
+    appName_ = value;
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::appVersion(uint32 version) {
-    _appVersion = version;
+    appVersion_ = version;
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::engineName(std::string_view value) {
-    _engineName = value;
+    engineName_ = value;
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::engineVersion(uint32 version) {
-    _engineVersion = version;
+    engineVersion_ = version;
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::vulkanVersion(uint32 version) {
-    _apiVersion = version;
+    apiVersion_ = version;
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::addLayer(const char* layer) {
-    _enabledLayers.push_back(layer);
+    enabledLayers_.push_back(layer);
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::addExtension(const char* extension) {
-    _enabledExtensions.push_back(extension);
+    enabledExtensions_.push_back(extension);
     return *this;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::addExtensions(std::vector<const char *> extension) {
-    _enabledExtensions.insert(_enabledExtensions.end(), extension.begin(), extension.end());
+    enabledExtensions_.insert(enabledExtensions_.end(), extension.begin(), extension.end());
     return *this;
 }
 
 std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-    appInfo.pApplicationName = _appName.c_str();
-    appInfo.applicationVersion = _appVersion;
-    appInfo.pEngineName = _engineName.c_str();
-    appInfo.engineVersion = _engineVersion;
-    appInfo.apiVersion = _apiVersion;
+    appInfo.pApplicationName = appName_.c_str();
+    appInfo.applicationVersion = appVersion_;
+    appInfo.pEngineName = engineName_.c_str();
+    appInfo.engineVersion = engineVersion_;
+    appInfo.apiVersion = apiVersion_;
 
 #ifndef NDEBUG
-    _enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    enabledExtensions_.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
     VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
     createInfo.pApplicationInfo = &appInfo;
 
-    createInfo.enabledExtensionCount = to<uint32>(_enabledExtensions.size());
-    createInfo.ppEnabledExtensionNames = _enabledExtensions.data();
+    createInfo.enabledExtensionCount = to<uint32>(enabledExtensions_.size());
+    createInfo.ppEnabledExtensionNames = enabledExtensions_.data();
 
-    createInfo.enabledLayerCount = to<uint32>(_enabledLayers.size());
-    createInfo.ppEnabledLayerNames = _enabledLayers.data();
+    createInfo.enabledLayerCount = to<uint32>(enabledLayers_.size());
+    createInfo.ppEnabledLayerNames = enabledLayers_.data();
 
 #ifndef NDEBUG
     auto debugInfo = VulkanDebugMessenger::debugCreateInfo();
@@ -112,14 +112,14 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     }
 
     auto appInstance = std::make_shared<VulkanInstance>(createInfo, instance);
-    if(_window){
-        appInstance->set(_window->createSurface(instance));
+    if(window_){
+        appInstance->set(window_->createSurface(instance));
     }
     return appInstance;
 }
 
 VulkanInstanceBuilder &VulkanInstanceBuilder::addWindow(std::shared_ptr<Window> window) {
     addExtensions(WindowInterface::extensions());
-    _window = std::move(window);
+    window_ = std::move(window);
     return *this;
 }

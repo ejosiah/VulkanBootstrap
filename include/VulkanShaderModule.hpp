@@ -18,8 +18,8 @@ public:
     operator VkShaderModule();
 
 private:
-    VkDevice _device;
-    VkShaderModule _module;
+    VkDevice device_;
+    VkShaderModule module_;
 };
 
 class VulkanShaderModuleCreator {
@@ -37,7 +37,7 @@ private:
     std::vector<uint32> getCode();
 
 private:
-    VkDevice _device;
-    Code _code;
-    VkShaderModuleCreateInfo _info{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+    VkDevice device_;
+    Code code_;
+    VkShaderModuleCreateInfo info_{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 };

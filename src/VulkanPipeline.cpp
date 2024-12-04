@@ -3,21 +3,21 @@
 #include <stdexcept>
 
 VulkanDescriptorPool::VulkanDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool)
-        : _device(device)
-        , _descriptorPool(descriptorPool)
+        : device_(device)
+        , descriptorPool_(descriptorPool)
 {}
 
 VulkanDescriptorPool::~VulkanDescriptorPool() {
-    vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
+    vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
 }
 
 VkDescriptorSet VulkanDescriptorPool::allocate(VkDescriptorSetLayout layout) {
     VkDescriptorSet descriptorSet;
     VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-    info.descriptorPool = _descriptorPool;
+    info.descriptorPool = descriptorPool_;
     info.descriptorSetCount = 1;
     info.pSetLayouts = &layout;
-    vkAllocateDescriptorSets(_device, &info, &descriptorSet);
+    vkAllocateDescriptorSets(device_, &info, &descriptorSet);
     return descriptorSet;
 }
 
@@ -25,39 +25,39 @@ std::vector<VkDescriptorSet> VulkanDescriptorPool::allocate(std::span<VkDescript
     std::vector<VkDescriptorSet> descriptorSet(layouts.size());
 
     VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-    info.descriptorPool = _descriptorPool;
+    info.descriptorPool = descriptorPool_;
     info.descriptorSetCount = layouts.size();
     info.pSetLayouts = layouts.data();
 
-    vkAllocateDescriptorSets(_device, &info, descriptorSet.data());
+    vkAllocateDescriptorSets(device_, &info, descriptorSet.data());
 
     return descriptorSet;
 }
 
 VulkanDescriptorPoolCreator::VulkanDescriptorPoolCreator(VkDevice device)
-        : _device(device){}
+        : device_(device){}
 
 VulkanDescriptorPoolCreator &VulkanDescriptorPoolCreator::flags(VkDescriptorPoolCreateFlags flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 VulkanDescriptorPoolCreator &VulkanDescriptorPoolCreator::maxSets(uint32_t value) {
-    _info.maxSets = value;
+    info_.maxSets = value;
     return *this;
 }
 
 VulkanDescriptorPoolCreator &VulkanDescriptorPoolCreator::addPoolSize(VkDescriptorPoolSize poolSize) {
-    _poolSizes.push_back(poolSize);
+    poolSizes_.push_back(poolSize);
     return *this;
 }
 
 VkDescriptorPool VulkanDescriptorPoolCreator::create() {
-    _info.poolSizeCount = _poolSizes.size();
-    _info.pPoolSizes = _poolSizes.data();
+    info_.poolSizeCount = poolSizes_.size();
+    info_.pPoolSizes = poolSizes_.data();
 
     VkDescriptorPool descriptorPool;
-    auto result = vkCreateDescriptorPool(_device, &_info, nullptr, &descriptorPool);
+    auto result = vkCreateDescriptorPool(device_, &info_, nullptr, &descriptorPool);
     if(result != VK_SUCCESS){
         throw std::runtime_error{ "unable to create descriptor pool "};
     }
@@ -66,51 +66,51 @@ VkDescriptorPool VulkanDescriptorPoolCreator::create() {
 }
 
 std::unique_ptr<VulkanDescriptorPool> VulkanDescriptorPoolCreator::make_unique() {
-    return std::make_unique<VulkanDescriptorPool>( _device, create() );
+    return std::make_unique<VulkanDescriptorPool>( device_, create() );
 }
 
 std::shared_ptr<VulkanDescriptorPool> VulkanDescriptorPoolCreator::make_shared() {
-    return std::make_shared<VulkanDescriptorPool>( _device, create() );
+    return std::make_shared<VulkanDescriptorPool>( device_, create() );
 }
 
 VulkanPipelineDescriptorSetLayout::VulkanPipelineDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout setLayout)
-: _device(device)
-, _setLayout(setLayout){}
+: device_(device)
+, setLayout_(setLayout){}
 
 VulkanPipelineDescriptorSetLayout::~VulkanPipelineDescriptorSetLayout() {
-    vkDestroyDescriptorSetLayout(_device, _setLayout, VK_NULL_HANDLE);
+    vkDestroyDescriptorSetLayout(device_, setLayout_, VK_NULL_HANDLE);
 }
 
 VulkanPipelineDescriptorSetLayout::operator VkDescriptorSetLayout() const {
-    return _setLayout;
+    return setLayout_;
 }
 
 VulkanPipelineDescriptorSetLayout::operator VkDescriptorSetLayout*() {
-    return &_setLayout;
+    return &setLayout_;
 }
 
 VulkanPipelineDescriptorSetLayoutCreator::VulkanPipelineDescriptorSetLayoutCreator(VkDevice device)
-: _device(device)
-, _info{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO }{}
+: device_(device)
+, info_{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO }{}
 
 VulkanPipelineDescriptorSetLayoutCreator &
 VulkanPipelineDescriptorSetLayoutCreator::flags(VkDescriptorSetLayoutCreateFlags flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 VulkanPipelineDescriptorSetLayoutCreator &
 VulkanPipelineDescriptorSetLayoutCreator::addBinding(const VkDescriptorSetLayoutBinding &binding) {
-    _bindings.push_back(binding);
+    bindings_.push_back(binding);
     return *this;
 }
 
 VkDescriptorSetLayout VulkanPipelineDescriptorSetLayoutCreator::create() {
-    _info.bindingCount = _bindings.size();
-    _info.pBindings = _bindings.data();
+    info_.bindingCount = bindings_.size();
+    info_.pBindings = bindings_.data();
 
     VkDescriptorSetLayout layout{};
-    auto result = vkCreateDescriptorSetLayout(_device, &_info, nullptr, &layout);
+    auto result = vkCreateDescriptorSetLayout(device_, &info_, nullptr, &layout);
     if(result != VK_SUCCESS){
         throw std::runtime_error{ "unable to create descriptorset layout" };
     }
@@ -119,51 +119,51 @@ VkDescriptorSetLayout VulkanPipelineDescriptorSetLayoutCreator::create() {
 
 std::unique_ptr<VulkanPipelineDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_unique() {
     VkDescriptorSetLayout setLayout = create();
-    return std::make_unique<VulkanPipelineDescriptorSetLayout>(_device, setLayout);
+    return std::make_unique<VulkanPipelineDescriptorSetLayout>(device_, setLayout);
 }
 
 std::shared_ptr<VulkanPipelineDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_shared() {
     VkDescriptorSetLayout setLayout = create();
-    return std::make_shared<VulkanPipelineDescriptorSetLayout>(_device, setLayout);
+    return std::make_shared<VulkanPipelineDescriptorSetLayout>(device_, setLayout);
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout layout)
-: _device(device)
-, _layout(layout){}
+: device_(device)
+, layout_(layout){}
 
 VulkanPipelineLayout::~VulkanPipelineLayout() {
-    vkDestroyPipelineLayout(_device, _layout, nullptr);
+    vkDestroyPipelineLayout(device_, layout_, nullptr);
 }
 
 VulkanPipelineLayout::operator VkPipelineLayout() const {
-    return _layout;
+    return layout_;
 }
 VulkanPipelineLayout::operator VkPipelineLayout*() {
-    return &_layout;
+    return &layout_;
 }
 
 VulkanPipelineLayoutCreator::VulkanPipelineLayoutCreator(VkDevice device)
-: _device(device){}
+: device_(device){}
 
 VulkanPipelineLayoutCreator &VulkanPipelineLayoutCreator::addSetLayout(VkDescriptorSetLayout setLayout) {
-    _setLayouts.push_back(setLayout);
+    setLayouts_.push_back(setLayout);
     return *this;
 }
 
 VulkanPipelineLayoutCreator &VulkanPipelineLayoutCreator::addPushConstant(VkPushConstantRange range) {
-    _ranges.push_back(range);
+    ranges_.push_back(range);
     return *this;
 }
 
 VkPipelineLayout VulkanPipelineLayoutCreator::create() {
-    _info.setLayoutCount = _setLayouts.size();
-    _info.pSetLayouts = _setLayouts.data();
+    info_.setLayoutCount = setLayouts_.size();
+    info_.pSetLayouts = setLayouts_.data();
 
-    _info.pushConstantRangeCount = _ranges.size();
-    _info.pPushConstantRanges = _ranges.data();
+    info_.pushConstantRangeCount = ranges_.size();
+    info_.pPushConstantRanges = ranges_.data();
 
     VkPipelineLayout layout;
-    auto result = vkCreatePipelineLayout(_device, &_info, nullptr, &layout);
+    auto result = vkCreatePipelineLayout(device_, &info_, nullptr, &layout);
 
     if(result != VK_SUCCESS){
         throw std::runtime_error{ "unable to create pipeline layout"};
@@ -173,26 +173,26 @@ VkPipelineLayout VulkanPipelineLayoutCreator::create() {
 }
 
 VulkanPipelineLayoutCreator &VulkanPipelineLayoutCreator::flags(VkPipelineLayoutCreateFlags flags) {
-    _info.flags = flags;
+    info_.flags = flags;
     return *this;
 }
 
 std::unique_ptr<VulkanPipelineLayout> VulkanPipelineLayoutCreator::make_unique() {
-    return std::make_unique<VulkanPipelineLayout>( _device, create());
+    return std::make_unique<VulkanPipelineLayout>( device_, create());
 }
 
 std::shared_ptr<VulkanPipelineLayout> VulkanPipelineLayoutCreator::make_shared() {
-    return std::make_shared<VulkanPipelineLayout>( _device, create());
+    return std::make_shared<VulkanPipelineLayout>( device_, create());
 }
 
 VulkanPipeline::VulkanPipeline(VkDevice device, VkPipeline pipeline)
-: _device(device)
-, _pipeline(pipeline){}
+: device_(device)
+, pipeline_(pipeline){}
 
 VulkanPipeline::~VulkanPipeline() {
-    vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyPipeline(device_, pipeline_, nullptr);
 }
 
 VulkanPipeline::operator VkPipeline() const {
-    return _pipeline;
+    return pipeline_;
 }

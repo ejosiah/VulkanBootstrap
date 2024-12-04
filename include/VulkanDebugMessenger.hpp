@@ -22,6 +22,6 @@ private:
             void*                                            pUserData);
 
 private:
-    VkDebugUtilsMessengerEXT _debugMessenger{};
-    VkInstance _instance;
+    VkDebugUtilsMessengerEXT debugMessenger_{};
+    VkInstance instance_;
 };

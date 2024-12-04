@@ -6,15 +6,15 @@
 #include <utility>
 
 Scene::Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState)
-: _device(std::move(device))
-, _appState(appState)
-, _inheritanceInfo{
+: device_(std::move(device))
+, appState_(appState)
+, inheritanceInfo_{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
-    .pNext = &_renderingInfo
+    .pNext = &renderingInfo_
 }{}
 
 void Scene::init0() {
-    _commandPool = _device->createCommandPool(VK_QUEUE_GRAPHICS_BIT);
+    commandPool_ = device_->createCommandPool(VK_QUEUE_GRAPHICS_BIT);
     invalidate0();
     init();
     initCommandBuffer();
@@ -23,11 +23,11 @@ void Scene::init0() {
 void Scene::invalidate0() {
     static VkFormat format;
 
-    _renderingInfo.colorAttachmentCount = 1;
-    _renderingInfo.pColorAttachmentFormats = &format;
-    _renderingInfo.depthAttachmentFormat = _appState.screenDepthFormat();
-    _renderingInfo.rasterizationSamples = _appState.screenSampleCount();
-    _inheritanceInfo.pNext = &_renderingInfo;
+    renderingInfo_.colorAttachmentCount = 1;
+    renderingInfo_.pColorAttachmentFormats = &format;
+    renderingInfo_.depthAttachmentFormat = appState_.screenDepthFormat();
+    renderingInfo_.rasterizationSamples = appState_.screenSampleCount();
+    inheritanceInfo_.pNext = &renderingInfo_;
 }
 
 void Scene::refresh() {
@@ -41,27 +41,27 @@ void Scene::record0(VkCommandBuffer commandBuffer) {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
     };
-    beginInfo.pInheritanceInfo = &_inheritanceInfo;
+    beginInfo.pInheritanceInfo = &inheritanceInfo_;
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
     record(commandBuffer);
     vkEndCommandBuffer(commandBuffer);
 }
 
 void Scene::initCommandBuffer() {
-    _commandPool->reset();
-    _commandBuffer = _commandPool->allocate(_appState.numFramesInFlight(), VK_COMMAND_BUFFER_LEVEL_SECONDARY);
-    for(auto cb : _commandBuffer) {
+    commandPool_->reset();
+    commandBuffer_ = commandPool_->allocate(appState_.numFramesInFlight(), VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    for(auto cb : commandBuffer_) {
         record0(cb);
     }
 }
 
 void Scene::dynamicScene() {
-    _dynamicScene = true;
+    dynamicScene_ = true;
 }
 
 std::span<VkCommandBuffer> Scene::record() {
-    auto commandBuffer = _commandBuffer[_appState.currentFrame()];
-    if(_dynamicScene){
+    auto commandBuffer = commandBuffer_[appState_.currentFrame()];
+    if(dynamicScene_){
         record0(commandBuffer);
     }
     return { &commandBuffer, 1 };
@@ -74,16 +74,16 @@ void Scene::update() {}
 void Scene::invalidate() {}
 
 
-TestScene::TestScene(std::shared_ptr<VulkanDevice> _device, const AppState& appState)
-: Scene(std::move(_device), appState) {}
+TestScene::TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState)
+: Scene(std::move(device_), appState) {}
 
 void TestScene::update() {
     static int period = 5;
     const auto elapsed = Time::Elapsed();
 
     if(int(elapsed) % period == 0){
-        int index = int(elapsed)/period % to<int>(_clearColors.size());
-        auto cc = _clearColors[index].float32;
+        int index = int(elapsed)/period % to<int>(clearColors_.size());
+        auto cc = clearColors_[index].float32;
         Events::ClearScreen(cc[0], cc[1], cc[2], cc[3]);
     }
 }

@@ -14,22 +14,22 @@ VulkanApplication::VulkanApplication(
     std::shared_ptr<VulkanRenderer> renderer,
     std::shared_ptr<Scene> scene,
     AppState& appState)
-    : _window(std::move(window))
-    , _instance(std::move(instance))
-    , _debugMessenger(std::move(debugMessenger))
-    , _device(std::move(device))
-    , _renderer(std::move(renderer))
-    , _scene(std::move(scene))
-    , _appState(appState){}
+    : window_(std::move(window))
+    , instance_(std::move(instance))
+    , debugMessenger_(std::move(debugMessenger))
+    , device_(std::move(device))
+    , renderer_(std::move(renderer))
+    , scene_(std::move(scene))
+    , appState_(appState){}
 
 void VulkanApplication::run() {
     setup();
 
-    while(_window->isActive()) {
-        _appState.currentFrame_ = _renderer->currentFrame();
+    while(window_->isActive()) {
+        appState_.currentFrame_ = renderer_->currentFrame();
         processEvents();
-        _scene->update();
-        _renderer->renderFrame(_scene->record().front());
+        scene_->update();
+        renderer_->renderFrame(scene_->record().front());
         Time::Tick();
     }
 
@@ -80,14 +80,14 @@ VulkanApplication VulkanApplication::bootStrap(SceneFactory&& sceneFactory) {
 
 void VulkanApplication::setup() {
     Time::Init();
-    _renderer->init();
+    renderer_->init();
     initState();
-    _scene->init0();
+    scene_->init0();
 }
 
 void VulkanApplication::shutdown() {
-    _device->wait();
-    _renderer->stop();
+    device_->wait();
+    renderer_->stop();
     WindowInterface::disconnect();
 }
 
@@ -103,24 +103,24 @@ void VulkanApplication::processEvents() {
                     EventBus::Publish(Events::Invalidate);
                 },
                 [&](const ClearScreenEvent e) {
-                    _renderer->clearColor(e.r, e.g, e.b, e.a);
+                    renderer_->clearColor(e.r, e.g, e.b, e.a);
                 }
         }, EventBus::Poll());
     }
 }
 
 void VulkanApplication::initState() {
-    _appState.screenWidth_ = _renderer->width();
-    _appState.screenHeight_ = _renderer->height();
-    _appState.numFramesInFlight_ = _renderer->framesInFlight();
-    _appState.screenSampleCount_ = _renderer->samples();
-    _appState.screenFormat_ = _renderer->format();
-    _appState.screenDepthFormat_ = _renderer->depthFormat();
-    _appState.colorBufferCount_ = _renderer->colorBufferCount();
+    appState_.screenWidth_ = renderer_->width();
+    appState_.screenHeight_ = renderer_->height();
+    appState_.numFramesInFlight_ = renderer_->framesInFlight();
+    appState_.screenSampleCount_ = renderer_->samples();
+    appState_.screenFormat_ = renderer_->format();
+    appState_.screenDepthFormat_ = renderer_->depthFormat();
+    appState_.colorBufferCount_ = renderer_->colorBufferCount();
 }
 
 void VulkanApplication::invalidate() {
-    _renderer->invalidateSwapchain();
+    renderer_->invalidateSwapchain();
     initState();
-    _scene->refresh();
+    scene_->refresh();
 }

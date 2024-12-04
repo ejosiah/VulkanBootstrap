@@ -25,7 +25,7 @@ public:
     static std::shared_ptr<VulkanCommandPool> make_shared(VkDevice device, VkQueue queue, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags);
 
 private:
-    VkDevice _device;
-    VkQueue _queue;
-    VkCommandPool _commandPool;
+    VkDevice device_;
+    VkQueue queue_;
+    VkCommandPool commandPool_;
 };

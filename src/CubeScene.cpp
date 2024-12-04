@@ -93,32 +93,32 @@ void CubeScene::createBuffers() {
     auto iByteSize = sizeof(uint16) * indices.size();
     auto byteSize = vByteSize + iByteSize;
 
-    _cubeVertices =
-        _device->buffer()
+    cubeVertices_ =
+        device_->buffer()
             .memoryUsage(VMA_MEMORY_USAGE_GPU_ONLY)
             .usage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
             .size(vByteSize)
         .make_shared();
 
-    _cubeIndices =
-        _device->buffer()
+    cubeIndices_ =
+        device_->buffer()
             .memoryUsage(VMA_MEMORY_USAGE_GPU_ONLY)
             .usage(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
             .size(iByteSize)
         .make_shared();
 
-    _transformBuffer =
-        _device->buffer()
+    transformBuffer_ =
+        device_->buffer()
             .memoryUsage(VMA_MEMORY_USAGE_CPU_TO_GPU)
             .usage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
             .size(sizeof(glm::mat4) * 3)
         .make_shared();
 
-    transform = reinterpret_cast<glm::mat4*>(_transformBuffer->map());
+    transform = reinterpret_cast<glm::mat4*>(transformBuffer_->map());
 
-    _commandPool->oneTime([&](auto commandBuffer){
+    commandPool_->oneTime([&](auto commandBuffer){
         auto stagingBuffer =
-            _device->buffer()
+            device_->buffer()
                 .memoryUsage(VMA_MEMORY_USAGE_CPU_ONLY)
                 .usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
                 .size(byteSize)
@@ -128,18 +128,18 @@ void CubeScene::createBuffers() {
 
         std::memcpy(mapping, cube.data(), vByteSize);
         VkBufferCopy region{0, 0, vByteSize};
-        vkCmdCopyBuffer(commandBuffer, *stagingBuffer, *_cubeVertices, 1, &region);
+        vkCmdCopyBuffer(commandBuffer, *stagingBuffer, *cubeVertices_, 1, &region);
 
         std::memcpy(reinterpret_cast<uint8*>(mapping) + vByteSize, indices.data(), iByteSize);
         region.srcOffset = vByteSize;
         region.size = iByteSize;
-        vkCmdCopyBuffer(commandBuffer, *stagingBuffer, *_cubeIndices, 1, &region);
+        vkCmdCopyBuffer(commandBuffer, *stagingBuffer, *cubeIndices_, 1, &region);
     });
 }
 
 void CubeScene::createPipeline() {
-    auto vertexShader =  _device->shader().code("../../resources/shaders/cube.vert.spv").make_shared();
-    auto fragmentShader =  _device->shader().code("../../resources/shaders/cube.frag.spv").make_shared();
+    auto vertexShader =  device_->shader().code("../../resources/shaders/cube.vert.spv").make_shared();
+    auto fragmentShader =  device_->shader().code("../../resources/shaders/cube.frag.spv").make_shared();
 
     VkPipelineShaderStageCreateInfo vertexStageCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
     vertexStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -170,8 +170,8 @@ void CubeScene::createPipeline() {
 
     VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO };
 
-    VkViewport viewport{0, 0, to<float>(_appState.screenWidth()), to<float>(_appState.screenHeight()), 0, 1 };
-    VkRect2D scissor{ {0, 0}, {_appState.screenWidth(), _appState.screenHeight() }};
+    VkViewport viewport{0, 0, to<float>(appState_.screenWidth()), to<float>(appState_.screenHeight()), 0, 1 };
+    VkRect2D scissor{ {0, 0}, {appState_.screenWidth(), appState_.screenHeight() }};
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
     viewportStateCreateInfo.viewportCount = 1;
     viewportStateCreateInfo.pViewports = &viewport;
@@ -185,7 +185,7 @@ void CubeScene::createPipeline() {
     rasterizationStateCreateInfo.lineWidth = 1;
 
     VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
-    multisampleStateCreateInfo.rasterizationSamples = _appState.screenSampleCount();
+    multisampleStateCreateInfo.rasterizationSamples = appState_.screenSampleCount();
 
     VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
     depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
@@ -204,16 +204,16 @@ void CubeScene::createPipeline() {
 
     VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
 
-    _pipelineLayout =
-        _device->pipelineLayout()
-            .addSetLayout(*_descriptorSetLayout)
+    pipelineLayout_ =
+        device_->pipelineLayout()
+            .addSetLayout(*descriptorSetLayout_)
         .make_unique();
 
-    auto colorFormat = _appState.screenFormat();
+    auto colorFormat = appState_.screenFormat();
     VkPipelineRenderingCreateInfo renderingCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
     renderingCreateInfo.colorAttachmentCount = 1;
     renderingCreateInfo.pColorAttachmentFormats = &colorFormat;
-    renderingCreateInfo.depthAttachmentFormat = _appState.screenDepthFormat();
+    renderingCreateInfo.depthAttachmentFormat = appState_.screenDepthFormat();
 
     VkGraphicsPipelineCreateInfo createInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
     createInfo.pNext = &renderingCreateInfo;
@@ -229,15 +229,15 @@ void CubeScene::createPipeline() {
     createInfo.pDepthStencilState = &depthStencilStateCreateInfo;
     createInfo.pColorBlendState = &colorBlendStateCreateInfo;
     createInfo.pDynamicState = &dynamicStateCreateInfo;
-    createInfo.layout = *_pipelineLayout;
+    createInfo.layout = *pipelineLayout_;
 
-    _pipeline = _device->graphicsPipeline(createInfo);
+    pipeline_ = device_->graphicsPipeline(createInfo);
 
 }
 
 void CubeScene::createDescriptorPool() {
-    _descriptorPool =
-        _device->descriptorPool()
+    descriptorPool_ =
+        device_->descriptorPool()
             .flags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
             .addPoolSize({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1})
             .maxSets(1)
@@ -245,24 +245,24 @@ void CubeScene::createDescriptorPool() {
 }
 
 void CubeScene::createDescriptorSetLayout() {
-    _descriptorSetLayout =
-        _device->descriptorSetLayout()
+    descriptorSetLayout_ =
+        device_->descriptorSetLayout()
             .addBinding({ 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT})
         .make_unique();
 }
 
 void CubeScene::updateDescriptorSet() {
-    _descriptorSet = _descriptorPool->allocate(*_descriptorSetLayout);
+    descriptorSet_ = descriptorPool_->allocate(*descriptorSetLayout_);
     VkWriteDescriptorSet write{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-    write.dstSet = _descriptorSet;
+    write.dstSet = descriptorSet_;
     write.dstBinding = 0;
     write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     write.descriptorCount = 1;
 
-    VkDescriptorBufferInfo bufferInfo{*_transformBuffer, 0, VK_WHOLE_SIZE};
+    VkDescriptorBufferInfo bufferInfo{*transformBuffer_, 0, VK_WHOLE_SIZE};
     write.pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(*_device, 1, &write, 0, nullptr);
+    vkUpdateDescriptorSets(*device_, 1, &write, 0, nullptr);
 
 }
 
@@ -275,7 +275,7 @@ void CubeScene::invalidate() {
 }
 
 void CubeScene::initCamera() {
-    transform[2] = vulkan_perspective(glm::radians(60.f), _appState.ScreenAspectRatio(), 0.1f, 50.f);
+    transform[2] = vulkan_perspective(glm::radians(60.f), appState_.ScreenAspectRatio(), 0.1f, 50.f);
     transform[1] = glm::lookAt({0, 2, 5}, glm::vec3(0), {0, 1, 0});
     transform[0] = glm::mat4(1);
 
@@ -291,10 +291,10 @@ void CubeScene::update() {
 
 void CubeScene::record(VkCommandBuffer commandBuffer) {
     VkDeviceSize offset = 0;
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipeline);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipelineLayout, 0, 1, &_descriptorSet, 0, nullptr);
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, *_cubeVertices, &offset);
-    vkCmdBindIndexBuffer(commandBuffer, *_cubeIndices, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline_);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipelineLayout_, 0, 1, &descriptorSet_, 0, nullptr);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, *cubeVertices_, &offset);
+    vkCmdBindIndexBuffer(commandBuffer, *cubeIndices_, 0, VK_INDEX_TYPE_UINT16);
     vkCmdDrawIndexed(commandBuffer, 36, 1, 0, 0, 0);
 }
 

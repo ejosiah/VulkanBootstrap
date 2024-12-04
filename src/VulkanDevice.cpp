@@ -13,17 +13,17 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkPhysicalDevice physicalDevice,
                            VmaAllocator allocator, std::map<VkQueueFlags, uint32> queueFamilyIndex,
                            std::map<VkQueueFlags, VkQueue> queues)
 
-:_instance(instance)
-, _physicalDevice(physicalDevice)
-, _device(device)
-, _allocator(allocator)
-, _queueFamilyIndex(std::move(queueFamilyIndex))
-, _queues(std::move(queues))
+:instance_(instance)
+, physicalDevice_(physicalDevice)
+, device_(device)
+, allocator_(allocator)
+, queueFamilyIndex_(std::move(queueFamilyIndex))
+, queues_(std::move(queues))
 {}
 
 VulkanDevice::~VulkanDevice() {
-    vmaDestroyAllocator(_allocator);
-    vkDestroyDevice(_device, VK_NULL_HANDLE);
+    vmaDestroyAllocator(allocator_);
+    vkDestroyDevice(device_, VK_NULL_HANDLE);
 }
 
 std::string VulkanDevice::toString(VkPhysicalDeviceType deviceType) {
@@ -38,7 +38,7 @@ std::string VulkanDevice::toString(VkPhysicalDeviceType deviceType) {
 
 std::string VulkanDevice::toString() {
     VkPhysicalDeviceProperties props;
-    vkGetPhysicalDeviceProperties(_physicalDevice, &props);
+    vkGetPhysicalDeviceProperties(physicalDevice_, &props);
 
     auto apiVersion = std::format("{}.{}.{}",
                                   VK_API_VERSION_MAJOR(props.apiVersion),
@@ -61,179 +61,179 @@ VulkanDeviceBuilder VulkanDevice::builder(VkInstance instance) {
 }
 
 VkQueue VulkanDevice::getQueue(uint32 queueFamilyIndex) const {
-    auto itr = std::find_if(_queueFamilyIndex.begin(), _queueFamilyIndex.end(),
+    auto itr = std::find_if(queueFamilyIndex_.begin(), queueFamilyIndex_.end(),
                             [i=queueFamilyIndex](auto e){ return e.second == i; });
-    if(itr != _queueFamilyIndex.end()){
-        return _queues.at(itr->first);
+    if(itr != queueFamilyIndex_.end()){
+        return queues_.at(itr->first);
     }else {
         return nullptr;
     }
 }
 
 VkQueue VulkanDevice::getGraphicsQueue() const {
-    if(!_queues.contains(VK_QUEUE_GRAPHICS_BIT)) {
+    if(!queues_.contains(VK_QUEUE_GRAPHICS_BIT)) {
         return nullptr;
     }
-    return _queues.at(VK_QUEUE_GRAPHICS_BIT);
+    return queues_.at(VK_QUEUE_GRAPHICS_BIT);
 }
 
 VkQueue VulkanDevice::getComputeQueue() const {
-    if(!_queues.contains(VK_QUEUE_COMPUTE_BIT)) {
+    if(!queues_.contains(VK_QUEUE_COMPUTE_BIT)) {
         return nullptr;
     }
-    return _queues.at(VK_QUEUE_COMPUTE_BIT);
+    return queues_.at(VK_QUEUE_COMPUTE_BIT);
 }
 
 VkQueue VulkanDevice::getTransferQueue() const {
-    if(!_queues.contains(VK_QUEUE_TRANSFER_BIT)) {
+    if(!queues_.contains(VK_QUEUE_TRANSFER_BIT)) {
         return nullptr;
     }
-    return _queues.at(VK_QUEUE_TRANSFER_BIT);
+    return queues_.at(VK_QUEUE_TRANSFER_BIT);
 }
 
 VkQueue VulkanDevice::getPresentQueue() const {
-    if(!_queues.contains(VK_QUEUE_PRESENT_BIT)) {
+    if(!queues_.contains(VK_QUEUE_PRESENT_BIT)) {
         return nullptr;
     }
-    return _queues.at(VK_QUEUE_PRESENT_BIT);
+    return queues_.at(VK_QUEUE_PRESENT_BIT);
 }
 
 VkSurfaceCapabilitiesKHR VulkanDevice::getSurfaceCapabilities(VkSurfaceKHR surface) const {
     VkSurfaceCapabilitiesKHR capabilities;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, surface, &capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface, &capabilities);
     return capabilities;
 }
 
 std::vector<VkSurfaceFormatKHR> VulkanDevice::getSurfaceFormat(VkSurfaceKHR surface) const {
     uint32 count;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface, &count, nullptr);
 
     std::vector<VkSurfaceFormatKHR> formats(count);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, formats.data());
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface, &count, formats.data());
     return formats;
 }
 
 std::vector<VkPresentModeKHR> VulkanDevice::getSurfacePresentationsModes(VkSurfaceKHR surface) const {
     uint32 count;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surface, &count, nullptr);
 
     std::vector<VkPresentModeKHR> modes(count);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, modes.data());
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surface, &count, modes.data());
     return modes;
 }
 
 VkDevice VulkanDevice::handle() const {
-    return _device;
+    return device_;
 }
 
 std::shared_ptr<VulkanCommandPool>
 VulkanDevice::createCommandPool(VkQueueFlagBits queueFlag, VkCommandPoolCreateFlags flags) {
-    if(!_queues.contains(queueFlag)){
+    if(!queues_.contains(queueFlag)){
         throw std::runtime_error{ std::format("No queue defined for queue type, TODO queue flag to string") };
     }
 
-    return VulkanCommandPool::make_shared(_device, _queues.at(queueFlag), _queueFamilyIndex.at(queueFlag), flags);
+    return VulkanCommandPool::make_shared(device_, queues_.at(queueFlag), queueFamilyIndex_.at(queueFlag), flags);
 }
 
 VulkanImageCreator VulkanDevice::image() {
-    return {_device, _allocator };
+    return {device_, allocator_ };
 }
 
 VulkanImageViewCreator VulkanDevice::imageView() {
-    return { _device };
+    return { device_ };
 }
 
 VulkanBufferCreator VulkanDevice::buffer() {
-    return { _allocator };
+    return { allocator_ };
 }
 
 VulkanDevice::operator VkDevice() const {
-    return _device;
+    return device_;
 }
 
 void VulkanDevice::wait() {
-    vkDeviceWaitIdle(_device);
+    vkDeviceWaitIdle(device_);
 }
 
 VulkanShaderModuleCreator VulkanDevice::shader() {
-    return { _device };
+    return { device_ };
 }
 
 VulkanDescriptorPoolCreator VulkanDevice::descriptorPool() {
-    return { _device };
+    return { device_ };
 }
 
 VulkanPipelineDescriptorSetLayoutCreator VulkanDevice::descriptorSetLayout() {
-    return { _device };
+    return { device_ };
 }
 
 VulkanPipelineLayoutCreator VulkanDevice::pipelineLayout() {
-    return { _device };
+    return { device_ };
 }
 
 std::unique_ptr<VulkanPipeline> VulkanDevice::graphicsPipeline(VkGraphicsPipelineCreateInfo createInfo) {
     VkPipeline pipeline;
-    auto result =  vkCreateGraphicsPipelines(_device, nullptr, 1, &createInfo, nullptr, &pipeline);
+    auto result =  vkCreateGraphicsPipelines(device_, nullptr, 1, &createInfo, nullptr, &pipeline);
     if(result != VK_SUCCESS) {
         throw std::runtime_error{ "unable to create graphics pipeline" };
     }
-    return std::make_unique<VulkanPipeline>(_device, pipeline);
+    return std::make_unique<VulkanPipeline>(device_, pipeline);
 }
 
 VkPhysicalDeviceProperties VulkanDevice::getProperties() const {
     VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(physicalDevice_, &properties);
     return properties;
 }
 
 VulkanDeviceBuilder::VulkanDeviceBuilder(VkInstance instance)
-: _instance(instance){}
+: instance_(instance){}
 
 VulkanDeviceBuilder& VulkanDeviceBuilder::addSurface(VkSurfaceKHR surface) {
-    _surface = surface;
+    surface_ = surface;
     return *this;
 }
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addQueue(VkQueueFlagBits queueType) {
-     _queueTypes |= queueType;
+     queueTypes_ |= queueType;
     return *this;
 }
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addUniqueQueue(VkQueueFlagBits queueType) {
-    _uniqueQueueTypes |= queueType;
+    uniqueQueueTypes_ |= queueType;
 
     return *this;
 }
 
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addLayer(const char *layer) {
-    _enabledLayers.push_back(layer);
+    enabledLayers_.push_back(layer);
     return *this;
 }
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addExtension(const char *extension) {
-    _enabledExtensions.push_back(extension);
+    enabledExtensions_.push_back(extension);
     return *this;
 }
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addLayers(std::vector<const char *> layers) {
-    _enabledLayers.insert(_enabledLayers.end(), layers.begin(), layers.end());
+    enabledLayers_.insert(enabledLayers_.end(), layers.begin(), layers.end());
     return *this;
 }
 
 VulkanDeviceBuilder &VulkanDeviceBuilder::addExtensions(std::vector<const char *> extensions) {
-    _enabledExtensions.insert(_enabledExtensions.end(), extensions.begin(), extensions.end());
+    enabledExtensions_.insert(enabledExtensions_.end(), extensions.begin(), extensions.end());
     return *this;
 }
 
 VkPhysicalDevice VulkanDeviceBuilder::pickDevice(VulkanDeviceBuilder::DevicePicker &&pick) {
-    auto physicalDevices = v_enumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, _instance);
-    _physicalDevice = pick(physicalDevices);
-    return _physicalDevice;
+    auto physicalDevices = v_enumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, instance_);
+    physicalDevice_ = pick(physicalDevices);
+    return physicalDevice_;
 }
 
 std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
-    if(!_physicalDevice) {
+    if(!physicalDevice_) {
         pickDevice();
     }
     auto queueFamilyIndex = getQueueFamilyIndexes();
@@ -245,16 +245,16 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
         vkGetDeviceQueue(device, index, 0, &queue);
         queues[flag] = queue;
     }
-    return std::make_shared<VulkanDevice>(_instance, _physicalDevice, device, allocator, queueFamilyIndex, queues);
+    return std::make_shared<VulkanDevice>(instance_, physicalDevice_, device, allocator, queueFamilyIndex, queues);
 }
 
 std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
-    assert(_queueTypes != 0 && "queueTypes not set");
-    const auto props = v_enumerate<VkQueueFamilyProperties>(vkGetPhysicalDeviceQueueFamilyProperties, _physicalDevice);
+    assert(queueTypes_ != 0 && "queueTypes not set");
+    const auto props = v_enumerate<VkQueueFamilyProperties>(vkGetPhysicalDeviceQueueFamilyProperties, physicalDevice_);
 
     std::map<VkFlags, uint32> queueFamilyIndex;
 
-    auto queryQueue = [&, queueType = _queueTypes](auto queueFamily, auto queueFlagBits, auto qfIndex){
+    auto queryQueue = [&, queueType = queueTypes_](auto queueFamily, auto queueFlagBits, auto qfIndex){
         if(!queueFamilyIndex.contains(queueFlagBits)){
             if((queueType & queueFlagBits) == queueFlagBits && (queueFamily.queueFlags & queueFlagBits) == queueFlagBits ){
                 queueFamilyIndex[queueFlagBits] = qfIndex;
@@ -268,9 +268,9 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
         queryQueue(queueFamily, VK_QUEUE_COMPUTE_BIT, i);
         queryQueue(queueFamily, VK_QUEUE_TRANSFER_BIT, i);
 
-        if(_surface && !queueFamilyIndex.contains(VK_QUEUE_PRESENT_BIT)){
+        if(surface_ && !queueFamilyIndex.contains(VK_QUEUE_PRESENT_BIT)){
             VkBool32 presentSupported;
-            vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, i, _surface, &presentSupported);
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surface_, &presentSupported);
             if(presentSupported){
                 queueFamilyIndex[VK_QUEUE_PRESENT_BIT] = i;
             }
@@ -280,7 +280,7 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
 
 
     auto queryUniqueQueue =
-            [&, queueType = _uniqueQueueTypes, previousQueueFamily = std::map<VkFlags, uint32>{}]
+            [&, queueType = uniqueQueueTypes_, previousQueueFamily = std::map<VkFlags, uint32>{}]
             (auto queueFamily, auto queueFlagBits, auto qfIndex) mutable  {
 
                 auto count = bits::count(queueFamily.queueFlags);
@@ -333,14 +333,14 @@ VkDevice VulkanDeviceBuilder::createDevice(const std::map<VkQueueFlags, uint32>&
     createInfo.pNext = &devFeatures13;
     createInfo.queueCreateInfoCount = to<uint32>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.enabledLayerCount = to<uint32>(_enabledLayers.size());
-    createInfo.ppEnabledLayerNames = _enabledLayers.data();
-    createInfo.enabledExtensionCount = to<uint32>(_enabledExtensions.size());
-    createInfo.ppEnabledExtensionNames = _enabledExtensions.data();
-    createInfo.pEnabledFeatures = &_enabledFeatures;
+    createInfo.enabledLayerCount = to<uint32>(enabledLayers_.size());
+    createInfo.ppEnabledLayerNames = enabledLayers_.data();
+    createInfo.enabledExtensionCount = to<uint32>(enabledExtensions_.size());
+    createInfo.ppEnabledExtensionNames = enabledExtensions_.data();
+    createInfo.pEnabledFeatures = &enabledFeatures_;
 
     VkDevice device;
-    auto result = vkCreateDevice(_physicalDevice, &createInfo, VK_NULL_HANDLE, &device);
+    auto result = vkCreateDevice(physicalDevice_, &createInfo, VK_NULL_HANDLE, &device);
 
     if(result != VK_SUCCESS){
         return nullptr;
@@ -357,9 +357,9 @@ VmaAllocator VulkanDeviceBuilder::createAllocator(VkDevice device) {
 
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-    allocatorCreateInfo.physicalDevice = _physicalDevice;
+    allocatorCreateInfo.physicalDevice = physicalDevice_;
     allocatorCreateInfo.device = device;
-    allocatorCreateInfo.instance = _instance;
+    allocatorCreateInfo.instance = instance_;
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
     VmaAllocator allocator;

@@ -5,15 +5,15 @@
 #include <utility>
 
 VulkanSwapchain::VulkanSwapchain(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage> images, VkExtent2D extent, VkFormat format)
-: _device(device)
-, _swapchain(swapchain)
-, _images(std::move(images))
-, _width(extent.width)
-, _height(extent.height)
-, _format(format){}
+: device_(device)
+, swapchain_(swapchain)
+, images_(std::move(images))
+, width_(extent.width)
+, height_(extent.height)
+, format_(format){}
 
 VulkanSwapchain::~VulkanSwapchain() {
-    vkDestroySwapchainKHR(_device, _swapchain, nullptr);
+    vkDestroySwapchainKHR(device_, swapchain_, nullptr);
 }
 
 VulkanSwapchainBuilder VulkanSwapchain::builder(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface) {
@@ -21,134 +21,134 @@ VulkanSwapchainBuilder VulkanSwapchain::builder(std::shared_ptr<VulkanDevice> de
 }
 
 uint32 VulkanSwapchain::imageCount() const {
-    return _images.size();
+    return images_.size();
 }
 
 VkImage VulkanSwapchain::getImage(uint32 index) {
-    assert(index < _images.size());
-    return _images[index];
+    assert(index < images_.size());
+    return images_[index];
 }
 
 VkFormat VulkanSwapchain::format() const {
-    return _format;
+    return format_;
 }
 
 uint32 VulkanSwapchain::width() const {
-    return _width;
+    return width_;
 }
 
 uint32 VulkanSwapchain::height() const {
-    return _height;
+    return height_;
 }
 
 VulkanSwapchain::operator VkSwapchainKHR() const {
-    return _swapchain;
+    return swapchain_;
 }
 
 VulkanSwapchain::operator const VkSwapchainKHR *() const {
-    return &_swapchain;
+    return &swapchain_;
 }
 
 
 VulkanSwapchainBuilder::VulkanSwapchainBuilder(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface)
-: _device(std::move(device))
-, _surface(surface)
+: device_(std::move(device))
+, surface_(surface)
 {}
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setMinImageCount(uint32 value) {
-    _minImageCount = value + 1;
+    minImageCount_ = value + 1;
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setImageFormat(VkFormat format, VkColorSpaceKHR colorSpace) {
-    _format = { format, colorSpace };
+    format_ = { format, colorSpace };
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setExtent(uint32 width, uint32 height) {
-    _extent.width = width;
-    _extent.height = height;
+    extent_.width = width;
+    extent_.height = height;
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPreTransform(VkSurfaceTransformFlagBitsKHR transform) {
-    _preTransform = transform;
+    preTransform_ = transform;
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setCompositeAlpha(VkCompositeAlphaFlagBitsKHR compositeAlpha) {
-    _compositeAlpha = compositeAlpha;
+    compositeAlpha_ = compositeAlpha;
     return *this;
 }
 
 VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPresentMode(VkPresentModeKHR mode) {
-    _presentMode = mode;
+    presentMode_ = mode;
     return *this;
 }
 
 std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
-    _capabilities = _device->getSurfaceCapabilities(_surface);
-    _supportedFormats = _device->getSurfaceFormat(_surface);
-    _supportedModes = _device->getSurfacePresentationsModes(_surface);
+    capabilities_ = device_->getSurfaceCapabilities(surface_);
+    supportedFormats_ = device_->getSurfaceFormat(surface_);
+    supportedModes_ = device_->getSurfacePresentationsModes(surface_);
 
     VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 
     const auto format = getFormat();
     const auto presentMode = getPresentMode();
     const auto extent = getExtent();
-    auto imageCount = std::min(_minImageCount, _capabilities.maxImageCount);
+    auto imageCount = std::min(minImageCount_, capabilities_.maxImageCount);
 
-    createInfo.surface = _surface;
+    createInfo.surface = surface_;
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = format.format;
     createInfo.imageColorSpace = format.colorSpace;
     createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    createInfo.preTransform = _preTransform;
-    createInfo.compositeAlpha = _compositeAlpha;
+    createInfo.preTransform = preTransform_;
+    createInfo.compositeAlpha = compositeAlpha_;
     createInfo.presentMode = presentMode;
     createInfo.clipped = true;
-    createInfo.oldSwapchain = _oldSwapchain;
+    createInfo.oldSwapchain = oldSwapchain_;
 
-    auto result = vkCreateSwapchainKHR(_device->handle(), &createInfo, nullptr, &_swapchain);
+    auto result = vkCreateSwapchainKHR(device_->handle(), &createInfo, nullptr, &swapchain_);
 
     if(result != VK_SUCCESS){
         return {};
     }
-    _oldSwapchain = _swapchain;
+    oldSwapchain_ = swapchain_;
 
     std::vector<VkImage> images(imageCount);
-    vkGetSwapchainImagesKHR(_device->handle(), _swapchain, &imageCount, images.data());
-    return std::make_unique<VulkanSwapchain>(_device->handle(), _swapchain, images, extent, format.format);
+    vkGetSwapchainImagesKHR(device_->handle(), swapchain_, &imageCount, images.data());
+    return std::make_unique<VulkanSwapchain>(device_->handle(), swapchain_, images, extent, format.format);
 }
 
 VkSurfaceFormatKHR VulkanSwapchainBuilder::getFormat() const {
-    bool supported = std::any_of(_supportedFormats.begin(), _supportedFormats.end(), [a=_format](auto b){
+    bool supported = std::any_of(supportedFormats_.begin(), supportedFormats_.end(), [a=format_](auto b){
         return a.format == b.format && a.colorSpace == b.colorSpace;
     });
 
     if(supported){
-        return _format;
+        return format_;
     }
 
-    return _supportedFormats.front();
+    return supportedFormats_.front();
 }
 
 
 
 VkPresentModeKHR VulkanSwapchainBuilder::getPresentMode() const {
-    bool requestedModeAvailable = std::any_of(_supportedModes.begin(), _supportedModes.end(), [a=_presentMode](auto b){
+    bool requestedModeAvailable = std::any_of(supportedModes_.begin(), supportedModes_.end(), [a=presentMode_](auto b){
         return a == b;
     });
 
     if(requestedModeAvailable){
-        return _presentMode;
+        return presentMode_;
     }
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
 VkExtent2D VulkanSwapchainBuilder::getExtent() const {
-    return { std::clamp(_extent.width, _capabilities.minImageExtent.width, _capabilities.maxImageExtent.width),
-        std::clamp(_extent.height, _capabilities.minImageExtent.height, _capabilities.maxImageExtent.height) };
+    return { std::clamp(extent_.width, capabilities_.minImageExtent.width, capabilities_.maxImageExtent.width),
+        std::clamp(extent_.height, capabilities_.minImageExtent.height, capabilities_.maxImageExtent.height) };
 }

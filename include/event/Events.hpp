@@ -35,6 +35,6 @@ private:
     EventBus() = default;
 
 private:
-    std::queue<Event> _queue;
+    std::queue<Event> queue_;
     static EventBus instance;
 };

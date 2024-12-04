@@ -16,9 +16,9 @@ public:
     operator VkImage() const;
 
 private:
-    VmaAllocator _allocator;
-    VmaAllocation _allocation;
-    VkImage _image;
+    VmaAllocator allocator_;
+    VmaAllocation allocation_;
+    VkImage image_;
 };
 
 class VulkanImageView {
@@ -32,8 +32,8 @@ public:
     operator VkImageView() const;
 
 private:
-    VkDevice _device;
-    VkImageView _imageView;
+    VkDevice device_;
+    VkImageView imageView_;
 };
 
 class VulkanImageCreator {
@@ -79,9 +79,9 @@ public:
     std::shared_ptr<VulkanImage> make_shared();
 
 private:
-    VkDevice _device{};
-    VmaAllocator _allocator{};
-    VkImageCreateInfo _info{ };
+    VkDevice device_{};
+    VmaAllocator allocator_{};
+    VkImageCreateInfo info_{ };
 };
 
 class VulkanImageViewCreator{
@@ -121,6 +121,6 @@ public:
     std::shared_ptr<VulkanImageView> make_shared();
 
 private:
-    VkDevice _device{};
-    VkImageViewCreateInfo _info;
+    VkDevice device_{};
+    VkImageViewCreateInfo info_;
 };

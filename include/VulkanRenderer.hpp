@@ -61,31 +61,31 @@ private:
 
 private:
     static constexpr int MAX_IN_FLIGHT_FRAMES = 2;
-    std::shared_ptr<Window> _window;
-    std::shared_ptr<VulkanInstance> _instance;
-    std::shared_ptr<VulkanDevice> _device;
-    std::unique_ptr<VulkanSwapchain> _swapchain;
-    VulkanSwapchainBuilder _swapchainBuilder;
-    std::shared_ptr<VulkanCommandPool> _commandPool;
-    std::vector<VkCommandBuffer> _renderCommandBuffer{};
-    VkSampleCountFlagBits _samples;
+    std::shared_ptr<Window> window_;
+    std::shared_ptr<VulkanInstance> instance_;
+    std::shared_ptr<VulkanDevice> device_;
+    std::unique_ptr<VulkanSwapchain> swapchain_;
+    VulkanSwapchainBuilder swapchainBuilder_;
+    std::shared_ptr<VulkanCommandPool> commandPool_;
+    std::vector<VkCommandBuffer> renderCommandBuffer_{};
+    VkSampleCountFlagBits samples_;
 
 
-    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _acquireImageSemaphore;
-    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> _renderingFinishedSemaphore;
-    std::array<VkFence, MAX_IN_FLIGHT_FRAMES> _inFlightFrame;
-    int _currentFrame{};
-    VkSubmitInfo _renderSubmitInfo;
-    VkPresentInfoKHR _presentInfo;
+    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> acquireImageSemaphore_;
+    std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> renderingFinishedSemaphore_;
+    std::array<VkFence, MAX_IN_FLIGHT_FRAMES> inFlightFrame_;
+    int currentFrame_{};
+    VkSubmitInfo renderSubmitInfo_;
+    VkPresentInfoKHR presentInfo_;
 
-    VkRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
+    VkRenderingInfo renderingInfo_{ VK_STRUCTURE_TYPE_RENDERING_INFO };
 
 
     struct {
         std::unique_ptr<VulkanImage> image;
         std::vector<std::unique_ptr<VulkanImageView>> imageView;
         VkRenderingAttachmentInfo attachment;
-    } _depthBuffer;
+    } depthBuffer_;
 
     struct {
         struct {
@@ -95,7 +95,7 @@ private:
         } _[10];
         std::vector<VkRenderingAttachmentInfo> attachment;
         std::vector<std::shared_ptr<VulkanImage>> msaaImages;
-    } _colorBuffer;
-    VkClearColorValue _clearColor{0, 0, 0, 1};
+    } colorBuffer_;
+    VkClearColorValue clearColor_{0, 0, 0, 1};
 
 };

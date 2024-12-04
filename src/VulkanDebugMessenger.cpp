@@ -3,12 +3,12 @@
 #include <spdlog/spdlog.h>
 
 VulkanDebugMessenger::VulkanDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger)
-:_instance(instance)
-, _debugMessenger(debugMessenger)
+:instance_(instance)
+, debugMessenger_(debugMessenger)
 {}
 
 VulkanDebugMessenger::~VulkanDebugMessenger() {
-    vkDestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, VK_NULL_HANDLE);
+    vkDestroyDebugUtilsMessengerEXT(instance_, debugMessenger_, VK_NULL_HANDLE);
 }
 
 VkBool32 VulkanDebugMessenger::debugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

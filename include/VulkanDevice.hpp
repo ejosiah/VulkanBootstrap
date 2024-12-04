@@ -85,12 +85,12 @@ public:
     void wait();
 
 private:
-    VkInstance _instance;
-    VkPhysicalDevice _physicalDevice;
-    VkDevice _device;
-    VmaAllocator _allocator;
-    std::map<VkQueueFlags, uint32_t> _queueFamilyIndex;
-    std::map<VkQueueFlags, VkQueue> _queues;
+    VkInstance instance_;
+    VkPhysicalDevice physicalDevice_;
+    VkDevice device_;
+    VmaAllocator allocator_;
+    std::map<VkQueueFlags, uint32_t> queueFamilyIndex_;
+    std::map<VkQueueFlags, VkQueue> queues_;
 };
 
 class VulkanDeviceBuilder {
@@ -124,13 +124,13 @@ private:
 
 private:
 
-    VkInstance _instance;
-    std::vector<const char*> _enabledLayers;
-    std::vector<const char*> _enabledExtensions;
-    VkQueueFlags _queueTypes{0};
-    VkQueueFlags _uniqueQueueTypes{0};
-    VkSurfaceKHR _surface{};
-    VkPhysicalDevice _physicalDevice{};
-    VkPhysicalDeviceFeatures _enabledFeatures{ };
+    VkInstance instance_;
+    std::vector<const char*> enabledLayers_;
+    std::vector<const char*> enabledExtensions_;
+    VkQueueFlags queueTypes_{0};
+    VkQueueFlags uniqueQueueTypes_{0};
+    VkSurfaceKHR surface_{};
+    VkPhysicalDevice physicalDevice_{};
+    VkPhysicalDeviceFeatures enabledFeatures_{ };
 
 };

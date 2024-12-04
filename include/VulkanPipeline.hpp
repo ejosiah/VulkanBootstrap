@@ -18,8 +18,8 @@ public:
     std::vector<VkDescriptorSet> allocate(std::span<VkDescriptorSetLayout> layouts);
 
 private:
-    VkDevice _device;
-    VkDescriptorPool _descriptorPool;
+    VkDevice device_;
+    VkDescriptorPool descriptorPool_;
 };
 
 class VulkanDescriptorPoolCreator {
@@ -39,9 +39,9 @@ public:
     std::shared_ptr<VulkanDescriptorPool> make_shared();
 
 private:
-    VkDevice _device;
-    std::vector<VkDescriptorPoolSize> _poolSizes;
-    VkDescriptorPoolCreateInfo _info{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+    VkDevice device_;
+    std::vector<VkDescriptorPoolSize> poolSizes_;
+    VkDescriptorPoolCreateInfo info_{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 };
 
 class VulkanPipelineDescriptorSetLayout {
@@ -55,8 +55,8 @@ public:
     operator VkDescriptorSetLayout*();
 
 private:
-    VkDevice _device;
-    VkDescriptorSetLayout _setLayout;
+    VkDevice device_;
+    VkDescriptorSetLayout setLayout_;
 };
 
 class VulkanPipelineDescriptorSetLayoutCreator {
@@ -74,14 +74,14 @@ public:
     std::shared_ptr<VulkanPipelineDescriptorSetLayout> make_shared();
 
 private:
-    VkDevice _device;
-    std::vector<VkDescriptorSetLayoutBinding> _bindings{};
-    VkDescriptorSetLayoutCreateInfo _info;
+    VkDevice device_;
+    std::vector<VkDescriptorSetLayoutBinding> bindings_{};
+    VkDescriptorSetLayoutCreateInfo info_;
 };
 
 class VulkanPipelineLayout {
 public:
-    explicit VulkanPipelineLayout(VkDevice device, VkPipelineLayout _layout);
+    explicit VulkanPipelineLayout(VkDevice device, VkPipelineLayout layout_);
 
     ~VulkanPipelineLayout();
 
@@ -90,8 +90,8 @@ public:
     operator VkPipelineLayout*();
 
 private:
-    VkDevice _device;
-    VkPipelineLayout _layout;
+    VkDevice device_;
+    VkPipelineLayout layout_;
 };
 
 class VulkanPipelineLayoutCreator {
@@ -111,10 +111,10 @@ public:
     std::shared_ptr<VulkanPipelineLayout> make_shared();
 
 private:
-    VkDevice _device;
-    std::vector<VkDescriptorSetLayout> _setLayouts;
-    std::vector<VkPushConstantRange> _ranges;
-    VkPipelineLayoutCreateInfo _info{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+    VkDevice device_;
+    std::vector<VkDescriptorSetLayout> setLayouts_;
+    std::vector<VkPushConstantRange> ranges_;
+    VkPipelineLayoutCreateInfo info_{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 };
 
 class VulkanPipeline {
@@ -126,6 +126,6 @@ public:
     operator VkPipeline() const;
 
 private:
-    VkDevice _device;
-    VkPipeline _pipeline;
+    VkDevice device_;
+    VkPipeline pipeline_;
 };

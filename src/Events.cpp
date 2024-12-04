@@ -5,22 +5,22 @@
 EventBus EventBus::instance{};
 
 void EventBus::Publish(Event event) {
-    instance._queue.push(event);
+    instance.queue_.push(event);
 }
 
 Event EventBus::Poll() {
-    if(instance._queue.empty()){
+    if(instance.queue_.empty()){
         throw std::runtime_error{ "EventBus empty" };
     }
 
-    auto event = instance._queue.front();
-    instance._queue.pop();
+    auto event = instance.queue_.front();
+    instance.queue_.pop();
 
     return  event;
 }
 
 bool EventBus::HasEvents() {
-    return !instance._queue.empty();
+    return !instance.queue_.empty();
 }
 
 void Events::ClearScreen(float r, float g, float b, float a) {

@@ -18,8 +18,8 @@ void WindowInterface::connect() {
 
 void WindowInterface::disconnect() {
     for(const auto& window : windows) {
-        glfwDestroyWindow(window->_window);
-        window->_connected = false;
+        glfwDestroyWindow(window->window_);
+        window->connected_ = false;
     }
     glfwTerminate();
 }
@@ -53,40 +53,40 @@ void WindowInterface::pollEvents() {
 
 
 Window::Window(GLFWwindow* window, std::string title)
-        :_window(window),
-         _title(std::move(title)){
+        :window_(window),
+         title_(std::move(title)){
 }
 
 Window::~Window() {
-    if(_connected) {
-        glfwDestroyWindow(_window);
+    if(connected_) {
+        glfwDestroyWindow(window_);
     }
 }
 
 bool Window::isActive() {
-    return glfwWindowShouldClose(_window) != GLFW_TRUE;
+    return glfwWindowShouldClose(window_) != GLFW_TRUE;
 }
 
 VkSurfaceKHR Window::createSurface(VkInstance instance) {
     VkSurfaceKHR surface{};
-    glfwCreateWindowSurface(instance, _window, VK_NULL_HANDLE, &surface);
+    glfwCreateWindowSurface(instance, window_, VK_NULL_HANDLE, &surface);
     return surface;
 }
 
 void Window::close() {
-    glfwSetWindowShouldClose(_window, GLFW_TRUE);
+    glfwSetWindowShouldClose(window_, GLFW_TRUE);
 }
 
 void Window::aWaitEvents() {
     int width, height;
     do{
-        glfwGetFramebufferSize(_window, &width, &height);
+        glfwGetFramebufferSize(window_, &width, &height);
         glfwWaitEvents();
     }while(width == 0 && height == 0);
 }
 
 std::tuple<uint32, uint32> Window::dimensions() {
     int width, height;
-    glfwGetFramebufferSize(_window, &width, &height);
+    glfwGetFramebufferSize(window_, &width, &height);
     return std::make_tuple(to<uint32>(width), to<uint32>(height));
 }

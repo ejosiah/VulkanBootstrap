@@ -9,7 +9,7 @@
 
 class Scene {
 public:
-    Scene(std::shared_ptr<VulkanDevice> _device, const AppState& appState);
+    Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState);
 
     virtual ~Scene() = default;
 
@@ -37,24 +37,24 @@ protected:
     void dynamicScene();
 
 protected:
-    std::shared_ptr<VulkanDevice> _device;
-    const AppState& _appState;
-    std::shared_ptr<VulkanCommandPool> _commandPool;
-    VkCommandBufferInheritanceInfo _inheritanceInfo;
-    VkCommandBufferInheritanceRenderingInfo _renderingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
-    bool _dynamicScene{};
+    std::shared_ptr<VulkanDevice> device_;
+    const AppState& appState_;
+    std::shared_ptr<VulkanCommandPool> commandPool_;
+    VkCommandBufferInheritanceInfo inheritanceInfo_;
+    VkCommandBufferInheritanceRenderingInfo renderingInfo_{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
+    bool dynamicScene_{};
 
 private:
-    std::vector<VkCommandBuffer> _commandBuffer;
+    std::vector<VkCommandBuffer> commandBuffer_;
 };
 
 class TestScene : public Scene {
 public:
-    TestScene(std::shared_ptr<VulkanDevice> _device, const AppState& appState);
+    TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState);
 
     void update() final;
 
 private:
-    std::vector<VkClearColorValue> _clearColors{ {1.f, 0, 0, 1.f}, {0, 1.f, 0, 1.f}, {0, 0, 1.f, 1.f} };
+    std::vector<VkClearColorValue> clearColors_{ {1.f, 0, 0, 1.f}, {0, 1.f, 0, 1.f}, {0, 0, 1.f, 1.f} };
 
 };

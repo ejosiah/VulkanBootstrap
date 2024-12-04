@@ -41,11 +41,11 @@ private:
     void invalidate();
 
 private:
-    std::shared_ptr<VulkanInstance> _instance;
-    std::shared_ptr<Window> _window;
-    std::shared_ptr<VulkanDebugMessenger> _debugMessenger;
-    std::shared_ptr<VulkanDevice> _device;
-    std::shared_ptr<VulkanRenderer> _renderer;
-    std::shared_ptr<Scene> _scene;
-    AppState& _appState;
+    std::shared_ptr<VulkanInstance> instance_;
+    std::shared_ptr<Window> window_;
+    std::shared_ptr<VulkanDebugMessenger> debugMessenger_;
+    std::shared_ptr<VulkanDevice> device_;
+    std::shared_ptr<VulkanRenderer> renderer_;
+    std::shared_ptr<Scene> scene_;
+    AppState& appState_;
 };

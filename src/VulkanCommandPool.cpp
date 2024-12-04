@@ -2,34 +2,34 @@
 #include "VulkanCommandPool.hpp"
 
 VulkanCommandPool::VulkanCommandPool(VkDevice device, VkQueue queue, VkCommandPool commandPool)
-: _device(device)
-, _queue(queue)
-, _commandPool(commandPool){}
+: device_(device)
+, queue_(queue)
+, commandPool_(commandPool){}
 
 VulkanCommandPool::~VulkanCommandPool() {
-    vkDestroyCommandPool(_device, _commandPool, nullptr);
+    vkDestroyCommandPool(device_, commandPool_, nullptr);
 }
 
 VkCommandBuffer VulkanCommandPool::allocateOne(VkCommandBufferLevel level) const {
     VkCommandBufferAllocateInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-    info.commandPool = _commandPool;
+    info.commandPool = commandPool_;
     info.level = level;
     info.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer{};
-    vkAllocateCommandBuffers(_device, &info, &commandBuffer);
+    vkAllocateCommandBuffers(device_, &info, &commandBuffer);
 
     return commandBuffer;
 }
 
 std::vector<VkCommandBuffer> VulkanCommandPool::allocate(uint32 count, VkCommandBufferLevel level) {
     VkCommandBufferAllocateInfo info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-    info.commandPool = _commandPool;
+    info.commandPool = commandPool_;
     info.level = level;
     info.commandBufferCount = count;
 
     std::vector<VkCommandBuffer> commandBuffers(count);
-    vkAllocateCommandBuffers(_device, &info, commandBuffers.data());
+    vkAllocateCommandBuffers(device_, &info, commandBuffers.data());
 
     return commandBuffers;
 }
@@ -49,9 +49,9 @@ void VulkanCommandPool::oneTime(Body&& body) {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(_queue, 1, &submitInfo, nullptr);
+    vkQueueSubmit(queue_, 1, &submitInfo, nullptr);
 
-    vkQueueWaitIdle(_queue);
+    vkQueueWaitIdle(queue_);
 }
 
 std::shared_ptr<VulkanCommandPool>
@@ -68,5 +68,5 @@ VulkanCommandPool::make_shared(VkDevice device, VkQueue queue, uint32 queueFamil
 }
 
 void VulkanCommandPool::reset() {
-    vkResetCommandPool(_device, _commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT );
+    vkResetCommandPool(device_, commandPool_, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT );
 }

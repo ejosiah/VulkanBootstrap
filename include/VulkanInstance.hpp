@@ -26,10 +26,10 @@ public:
     VkInstance handle() const;
 
 private:
-    VkApplicationInfo _appInfo;
-    VkInstanceCreateInfo _createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-    VkInstance _instance{};
-    VkSurfaceKHR _surface{};
+    VkApplicationInfo appInfo_;
+    VkInstanceCreateInfo createInfo_{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+    VkInstance instance_{};
+    VkSurfaceKHR surface_{};
 };
 
 class VulkanInstanceBuilder{
@@ -52,13 +52,13 @@ public:
     std::shared_ptr<VulkanInstance> make_shared();
 
 private:
-    std::string _appName{"Undefined"};
-    uint32_t _appVersion{VK_MAKE_API_VERSION(0, 0, 0, 0)};
-    std::string _engineName{"Undefined"};
-    uint32_t _engineVersion{0};
-    uint32_t _apiVersion{VK_API_VERSION_1_3};
+    std::string appName_{"Undefined"};
+    uint32_t appVersion_{VK_MAKE_API_VERSION(0, 0, 0, 0)};
+    std::string engineName_{"Undefined"};
+    uint32_t engineVersion_{0};
+    uint32_t apiVersion_{VK_API_VERSION_1_3};
 
-    std::vector<const char*> _enabledLayers;
-    std::vector<const char*> _enabledExtensions;
-    std::shared_ptr<Window> _window;
+    std::vector<const char*> enabledLayers_;
+    std::vector<const char*> enabledExtensions_;
+    std::shared_ptr<Window> window_;
 };

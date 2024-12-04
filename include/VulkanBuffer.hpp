@@ -25,10 +25,10 @@ public:
     operator VkBuffer*();
 
 private:
-    VmaAllocator _allocator;
-    VmaAllocation _allocation;
-    VkBuffer _buffer;
-    void* _mapping{};
+    VmaAllocator allocator_;
+    VmaAllocation allocation_;
+    VkBuffer buffer_;
+    void* mapping_{};
 };
 
 class VulkanBufferCreator {
@@ -50,8 +50,8 @@ public:
     std::shared_ptr<VulkanBuffer> make_shared();
 
 private:
-    VmaAllocator _allocator;
-    std::vector<uint32_t> _queueFamilyIndexes;
-    VkBufferCreateInfo _info { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-    VmaMemoryUsage _memoryUsage{VMA_MEMORY_USAGE_AUTO};
+    VmaAllocator allocator_;
+    std::vector<uint32_t> queueFamilyIndexes_;
+    VkBufferCreateInfo info_ { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+    VmaMemoryUsage memoryUsage_{VMA_MEMORY_USAGE_AUTO};
 };

@@ -1,30 +1,30 @@
 #include <GLFW/glfw3.h>
 #include "Time.hpp"
 
-double Time::_now;
-double Time::_elapsed;
-double Time::_delta;
+double Time::now_;
+double Time::elapsed_;
+double Time::delta_;
 
 void Time::Init() {
-    _now = 0;
-    _elapsed = 0;
-    _delta = 0;
+    now_ = 0;
+    elapsed_ = 0;
+    delta_ = 0;
 }
 
 void Time::Tick() {
-    _now = glfwGetTime();
-    _delta = _now - _elapsed;
-    _elapsed += _delta;
+    now_ = glfwGetTime();
+    delta_ = now_ - elapsed_;
+    elapsed_ += delta_;
 }
 
 double Time::Elapsed() {
-    return _elapsed;
+    return elapsed_;
 }
 
 double Time::Delta() {
-    return _delta;
+    return delta_;
 }
 
 double Time::Now() {
-    return _now;
+    return now_;
 }

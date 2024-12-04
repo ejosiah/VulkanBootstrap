@@ -16,7 +16,7 @@ private:
     Time() = default;
 
 private:
-    static double _now;
-    static double _elapsed;
-    static double _delta;
+    static double now_;
+    static double elapsed_;
+    static double delta_;
 };

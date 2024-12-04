@@ -33,14 +33,14 @@ public:
     void record(VkCommandBuffer commandBuffer) override;
 
 private:
-    std::shared_ptr<VulkanBuffer> _cubeVertices;
-    std::shared_ptr<VulkanBuffer> _cubeIndices;
-    std::shared_ptr<VulkanBuffer> _transformBuffer;
-    std::unique_ptr<VulkanDescriptorPool> _descriptorPool;
-    std::unique_ptr<VulkanPipelineDescriptorSetLayout> _descriptorSetLayout;
-    std::unique_ptr<VulkanPipelineLayout> _pipelineLayout;
-    std::unique_ptr<VulkanPipeline> _pipeline;
-    VkDescriptorSet _descriptorSet;
+    std::shared_ptr<VulkanBuffer> cubeVertices_;
+    std::shared_ptr<VulkanBuffer> cubeIndices_;
+    std::shared_ptr<VulkanBuffer> transformBuffer_;
+    std::unique_ptr<VulkanDescriptorPool> descriptorPool_;
+    std::unique_ptr<VulkanPipelineDescriptorSetLayout> descriptorSetLayout_;
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout_;
+    std::unique_ptr<VulkanPipeline> pipeline_;
+    VkDescriptorSet descriptorSet_;
 
     glm::mat4* transform{};
 

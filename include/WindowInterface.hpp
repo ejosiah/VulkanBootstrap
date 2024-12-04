@@ -44,11 +44,11 @@ public:
     VkSurfaceKHR createSurface(VkInstance instance);
 
     operator GLFWwindow*() const {
-        return _window;
+        return window_;
     }
 
 private:
-    std::string _title;
-    GLFWwindow* _window{};
-    bool _connected{true};
+    std::string title_;
+    GLFWwindow* window_{};
+    bool connected_{true};
 };
