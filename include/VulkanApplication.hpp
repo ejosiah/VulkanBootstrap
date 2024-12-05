@@ -11,8 +11,11 @@
 #include "AppState.hpp"
 
 #include <functional>
+#include <memory>
 
 class VulkanApplication {
+    class Impl;
+    Impl* pimpl;
 public:
     using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>, const AppState&)>;
 
@@ -25,6 +28,8 @@ public:
         std::shared_ptr<Scene> scene,
         AppState& appState);
 
+    ~VulkanApplication();
+
     void run();
 
    void shutdown();
@@ -33,19 +38,4 @@ public:
 
    static VulkanApplication bootStrap(SceneFactory&& sceneFactory);
 
-private:
-    void setup();
-
-    void initState();
-
-    void invalidate();
-
-private:
-    std::shared_ptr<VulkanInstance> instance_;
-    std::shared_ptr<Window> window_;
-    std::shared_ptr<VulkanDebugMessenger> debugMessenger_;
-    std::shared_ptr<VulkanDevice> device_;
-    std::shared_ptr<VulkanRenderer> renderer_;
-    std::shared_ptr<Scene> scene_;
-    AppState& appState_;
 };
