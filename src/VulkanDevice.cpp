@@ -6,6 +6,7 @@
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "vk_mem_alloc.h"
 #include "util/Bits.hpp"
+#include "SetVulkanObjectName.hpp"
 #include <utility>
 #include <format>
 
@@ -144,7 +145,7 @@ VulkanImageViewCreator VulkanDevice::imageView() {
 }
 
 VulkanBufferCreator VulkanDevice::buffer() {
-    return { allocator_ };
+    return { device_, allocator_ };
 }
 
 VulkanDevice::operator VkDevice() const {
@@ -184,6 +185,11 @@ VkPhysicalDeviceProperties VulkanDevice::getProperties() const {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physicalDevice_, &properties);
     return properties;
+}
+
+void VulkanDevice::setName(auto object, const std::string &name) {
+    setVulkanObjectName<decltype(object)::ObjectType>(device_, *object, name);
+    setter(device_, object, name);
 }
 
 VulkanDeviceBuilder::VulkanDeviceBuilder(VkInstance instance)

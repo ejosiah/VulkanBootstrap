@@ -1,5 +1,6 @@
 #include "Types.hpp"
 #include "VulkanBuffer.hpp"
+#include "SetVulkanObjectName.hpp"
 
 VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VmaAllocation allocation, VkBuffer buffer, VkBufferCreateInfo aSpec, VmaAllocationCreateInfo allocSpec)
 : allocator_(allocator)
@@ -35,8 +36,9 @@ VulkanBuffer::operator VkBuffer *() {
     return &buffer_;
 }
 
-VulkanBufferCreator::VulkanBufferCreator(VmaAllocator allocator)
-: allocator_(allocator) {}
+VulkanBufferCreator::VulkanBufferCreator(VkDevice device, VmaAllocator allocator)
+: device_(device)
+, allocator_(allocator) {}
 
 VulkanBufferCreator &VulkanBufferCreator::flags(VkBufferCreateFlags flags) {
     info_.flags = flags;
@@ -79,5 +81,14 @@ std::shared_ptr<VulkanBuffer> VulkanBufferCreator::make_shared() {
     VmaAllocation allocation;
     vmaCreateBuffer(allocator_, &info_, &allocInfo, &buffer, &allocation, nullptr);
 
+    if(!name_.empty()){
+        setVulkanObjectName<VK_OBJECT_TYPE_BUFFER>(device_, buffer, name_);
+    }
+
     return std::make_shared<VulkanBuffer>(allocator_, allocation, buffer, info_, allocInfo);
+}
+
+VulkanBufferCreator &VulkanBufferCreator::name(std::string_view name) {
+    name_ = name;
+    return *this;
 }

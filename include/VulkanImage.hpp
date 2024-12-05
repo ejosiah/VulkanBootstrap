@@ -7,6 +7,7 @@
 
 class VulkanImage {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_IMAGE;
     const VkImageCreateInfo spec;
 
     VulkanImage(VmaAllocator allocator, VmaAllocation allocation, VkImage image, const VkImageCreateInfo& spec);
@@ -23,6 +24,7 @@ private:
 
 class VulkanImageView {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_IMAGE_VIEW;
     const VkImageViewCreateInfo spec;
 
     VulkanImageView(VkDevice device, VkImageView imageView, const VkImageViewCreateInfo& spec);

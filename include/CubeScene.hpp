@@ -37,7 +37,7 @@ private:
     std::shared_ptr<VulkanBuffer> cubeIndices_;
     std::shared_ptr<VulkanBuffer> transformBuffer_;
     std::unique_ptr<VulkanDescriptorPool> descriptorPool_;
-    std::unique_ptr<VulkanPipelineDescriptorSetLayout> descriptorSetLayout_;
+    std::unique_ptr<VulkanDescriptorSetLayout> descriptorSetLayout_;
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout_;
     std::unique_ptr<VulkanPipeline> pipeline_;
     VkDescriptorSet descriptorSet_;

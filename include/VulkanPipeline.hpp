@@ -9,6 +9,7 @@
 
 class VulkanDescriptorPool {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_DESCRIPTOR_POOL;
     VulkanDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool);
 
     ~VulkanDescriptorPool();
@@ -44,11 +45,12 @@ private:
     VkDescriptorPoolCreateInfo info_{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 };
 
-class VulkanPipelineDescriptorSetLayout {
+class VulkanDescriptorSetLayout {
 public:
-    VulkanPipelineDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout setLayout);
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT;
+    VulkanDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout setLayout);
 
-    ~VulkanPipelineDescriptorSetLayout();
+    ~VulkanDescriptorSetLayout();
 
     operator VkDescriptorSetLayout() const;
 
@@ -69,9 +71,9 @@ public:
 
     VkDescriptorSetLayout create();
 
-    std::unique_ptr<VulkanPipelineDescriptorSetLayout> make_unique();
+    std::unique_ptr<VulkanDescriptorSetLayout> make_unique();
 
-    std::shared_ptr<VulkanPipelineDescriptorSetLayout> make_shared();
+    std::shared_ptr<VulkanDescriptorSetLayout> make_shared();
 
 private:
     VkDevice device_;
@@ -81,6 +83,7 @@ private:
 
 class VulkanPipelineLayout {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_PIPELINE_LAYOUT;
     explicit VulkanPipelineLayout(VkDevice device, VkPipelineLayout layout_);
 
     ~VulkanPipelineLayout();

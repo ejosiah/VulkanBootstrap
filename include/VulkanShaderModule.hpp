@@ -11,6 +11,7 @@
 
 class VulkanShaderModule {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_SHADER_MODULE;
     VulkanShaderModule(VkDevice device, VkShaderModule module);
 
     ~VulkanShaderModule();

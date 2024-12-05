@@ -73,19 +73,19 @@ std::shared_ptr<VulkanDescriptorPool> VulkanDescriptorPoolCreator::make_shared()
     return std::make_shared<VulkanDescriptorPool>( device_, create() );
 }
 
-VulkanPipelineDescriptorSetLayout::VulkanPipelineDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout setLayout)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout setLayout)
 : device_(device)
 , setLayout_(setLayout){}
 
-VulkanPipelineDescriptorSetLayout::~VulkanPipelineDescriptorSetLayout() {
+VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() {
     vkDestroyDescriptorSetLayout(device_, setLayout_, VK_NULL_HANDLE);
 }
 
-VulkanPipelineDescriptorSetLayout::operator VkDescriptorSetLayout() const {
+VulkanDescriptorSetLayout::operator VkDescriptorSetLayout() const {
     return setLayout_;
 }
 
-VulkanPipelineDescriptorSetLayout::operator VkDescriptorSetLayout*() {
+VulkanDescriptorSetLayout::operator VkDescriptorSetLayout*() {
     return &setLayout_;
 }
 
@@ -117,14 +117,14 @@ VkDescriptorSetLayout VulkanPipelineDescriptorSetLayoutCreator::create() {
     return layout;
 }
 
-std::unique_ptr<VulkanPipelineDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_unique() {
+std::unique_ptr<VulkanDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_unique() {
     VkDescriptorSetLayout setLayout = create();
-    return std::make_unique<VulkanPipelineDescriptorSetLayout>(device_, setLayout);
+    return std::make_unique<VulkanDescriptorSetLayout>(device_, setLayout);
 }
 
-std::shared_ptr<VulkanPipelineDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_shared() {
+std::shared_ptr<VulkanDescriptorSetLayout> VulkanPipelineDescriptorSetLayoutCreator::make_shared() {
     VkDescriptorSetLayout setLayout = create();
-    return std::make_shared<VulkanPipelineDescriptorSetLayout>(device_, setLayout);
+    return std::make_shared<VulkanDescriptorSetLayout>(device_, setLayout);
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout layout)

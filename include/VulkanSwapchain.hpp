@@ -7,6 +7,7 @@ class VulkanSwapchainBuilder;
 
 class VulkanSwapchain {
 public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_SWAPCHAIN_KHR;
     VulkanSwapchain(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage> images, VkExtent2D extent, VkFormat format);
 
     ~VulkanSwapchain();

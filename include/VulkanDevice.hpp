@@ -15,6 +15,7 @@
 #include <memory>
 #include <functional>
 #include <span>
+#include <string_view>
 
 class VulkanDeviceBuilder;
 
@@ -83,6 +84,8 @@ public:
     std::unique_ptr<VulkanPipeline> graphicsPipeline(VkGraphicsPipelineCreateInfo createInfo);
 
     void wait();
+
+    void setName(auto object, const std::string& name);
 
 private:
     VkInstance instance_;

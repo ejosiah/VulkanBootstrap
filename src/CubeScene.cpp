@@ -95,6 +95,7 @@ void CubeScene::createBuffers() {
 
     cubeVertices_ =
         device_->buffer()
+            .name("cube_vertices")
             .memoryUsage(VMA_MEMORY_USAGE_GPU_ONLY)
             .usage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
             .size(vByteSize)
@@ -102,6 +103,7 @@ void CubeScene::createBuffers() {
 
     cubeIndices_ =
         device_->buffer()
+            .name("cube_indices")
             .memoryUsage(VMA_MEMORY_USAGE_GPU_ONLY)
             .usage(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
             .size(iByteSize)
@@ -109,6 +111,7 @@ void CubeScene::createBuffers() {
 
     transformBuffer_ =
         device_->buffer()
+            .name("cube_transform")
             .memoryUsage(VMA_MEMORY_USAGE_CPU_TO_GPU)
             .usage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
             .size(sizeof(glm::mat4) * 3)
