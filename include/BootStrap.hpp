@@ -2,7 +2,8 @@
 
 #include "VulkanApplication.hpp"
 
-struct BoopStrap {
+struct BootStrap {
+    using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>, const AppState&)>;
 
-    static VulkanApplication bootStrap(SceneFactory&& sceneFactory);
+    static VulkanApplication application(SceneFactory &&sceneFactory);
 };

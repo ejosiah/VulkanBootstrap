@@ -1,9 +1,9 @@
-#include <VulkanApplication.hpp>
+#include <BootStrap.hpp>
 #include "CubeScene.hpp"
 #include <spdlog/spdlog.h>
 
 int main() {
-    auto app = VulkanApplication::bootStrap([](auto device, const auto& appState){
+    auto app = BootStrap::application([](auto device, const auto& appState){
         return std::make_shared<CubeScene>(device, appState);
     });
     app.run();

@@ -17,8 +17,6 @@ class VulkanApplication {
     class Impl;
     Impl* pimpl;
 public:
-    using SceneFactory = std::function<std::shared_ptr<Scene>(std::shared_ptr<VulkanDevice>, const AppState&)>;
-
     VulkanApplication(
         std::shared_ptr<Window> window,
         std::shared_ptr<VulkanInstance> instance,
@@ -35,7 +33,5 @@ public:
    void shutdown();
 
    void processEvents();
-
-   static VulkanApplication bootStrap(SceneFactory&& sceneFactory);
 
 };
