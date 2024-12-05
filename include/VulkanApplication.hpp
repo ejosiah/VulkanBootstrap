@@ -15,7 +15,7 @@
 
 class VulkanApplication {
     class Impl;
-    Impl* pimpl;
+    std::unique_ptr<Impl> pimpl;
 public:
     VulkanApplication(
         std::shared_ptr<Window> window,

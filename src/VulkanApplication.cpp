@@ -102,7 +102,7 @@ VulkanApplication::VulkanApplication(
     std::shared_ptr<VulkanRenderer> renderer,
     std::shared_ptr<Scene> scene,
     AppState& appState)
-    : pimpl(new Impl(std::move(window)
+    : pimpl(std::make_unique<Impl>(std::move(window)
     , (std::move(instance))
     , (std::move(debugMessenger))
     , (std::move(device))
@@ -122,7 +122,5 @@ void VulkanApplication::processEvents() {
     pimpl->processEvents();
 }
 
-VulkanApplication::~VulkanApplication() {
-    delete pimpl;
-}
+VulkanApplication::~VulkanApplication() = default;
 
