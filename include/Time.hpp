@@ -1,11 +1,17 @@
 #pragma once
 
+#include <chrono>
+
 class Time {
 public:
+    using Delta = std::chrono::milliseconds;
+    using Elapsed = std::chrono::milliseconds;
+    using Now = std::chrono::milliseconds;
+
     void tick();
-    [[nodiscard]] double delta() const;
-    [[nodiscard]] double elapsed() const;
-    [[nodiscard]] double now() const;
+    [[nodiscard]] Delta delta() const;
+    [[nodiscard]] Elapsed elapsed() const;
+    [[nodiscard]] Now now() const;
 
     static Time& instance() {
         static Time time{};
@@ -15,7 +21,7 @@ public:
 private:
     Time() = default;
 
-    double now_{};
-    double elapsed_{};
-    double delta_{};
+    Now now_{};
+    Elapsed elapsed_{};
+    Delta delta_{};
 };

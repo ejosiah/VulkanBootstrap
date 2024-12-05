@@ -79,7 +79,7 @@ TestScene::TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appS
 
 void TestScene::update() {
     static int period = 5;
-    const auto elapsed = Time::instance().elapsed();
+    const auto elapsed = Time::instance().elapsed().count() /1000.f;
 
     if(int(elapsed) % period == 0){
         int index = int(elapsed)/period % to<int>(clearColors_.size());

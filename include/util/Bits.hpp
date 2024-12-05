@@ -7,6 +7,7 @@ namespace bits {
     constexpr uint32 Byte = 8;
 
     template<typename T>
+    requires std::is_integral_v<T>
     auto findHighestBitSet(T bitset) {
         auto size = sizeof(T) * Byte;
         for(int pos = size - T(1); pos >=  0; --pos) {
@@ -20,6 +21,7 @@ namespace bits {
     }
 
     template<typename T>
+    requires std::is_integral_v<T>
     auto count(T bitset) {
         auto size = sizeof(T) * Byte;
         auto sum = 0;
