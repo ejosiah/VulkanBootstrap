@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 uv;
 
 layout(set = 0, binding = 0) uniform TRANSFORM {
     mat4 geomTransform;
@@ -12,6 +13,7 @@ layout(set = 0, binding = 0) uniform TRANSFORM {
 layout(location = 0) out struct {
     vec3 position;
     vec3 normal;
+    vec2 uv;
 } vs_out;
 
 void main(){
@@ -19,6 +21,7 @@ void main(){
 
     vs_out.position = worldPos.xyz;
     vs_out.normal = normal;
+    vs_out.uv = uv;
 
     gl_Position = projection * view * worldPos;
 }

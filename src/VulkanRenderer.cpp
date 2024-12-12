@@ -330,3 +330,7 @@ VulkanRenderer::ensureSampleCount(VkSampleCountFlagBits samples, const std::shar
 uint32 VulkanRenderer::currentFrame() const {
     return currentFrame_;
 }
+
+bool VulkanRenderer::msaaEnabled() const {
+    return !colorBuffer_.msaaImages.empty();
+}

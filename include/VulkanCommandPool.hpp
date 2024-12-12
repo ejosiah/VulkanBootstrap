@@ -8,8 +8,9 @@
 
 class VulkanCommandPool {
     using Body = std::function<void(VkCommandBuffer)>;
-
 public:
+    const VkObjectType  objectType = VK_OBJECT_TYPE_COMMAND_POOL;
+
     VulkanCommandPool(VkDevice device, VkQueue queue, VkCommandPool commandPool);
 
     ~VulkanCommandPool();
@@ -22,7 +23,11 @@ public:
 
     void reset();
 
+    VkCommandPool handle();
+
     static std::shared_ptr<VulkanCommandPool> make_shared(VkDevice device, VkQueue queue, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags);
+
+    static std::unique_ptr<VulkanCommandPool> make_unique(VkDevice device, VkQueue queue, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags);
 
 private:
     VkDevice device_;

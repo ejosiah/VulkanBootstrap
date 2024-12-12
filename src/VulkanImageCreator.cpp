@@ -1,6 +1,7 @@
 #include "Types.hpp"
 #include "VulkanImage.hpp"
 #include "vk_mem_alloc.h"
+#include <cpptrace/cpptrace.hpp>
 
 #include <stdexcept>
 
@@ -76,7 +77,7 @@ VulkanImageCreator &VulkanImageCreator::tiling(VkImageTiling tiling) {
 }
 
 VulkanImageCreator &VulkanImageCreator::usage(VkImageUsageFlagBits usage) {
-    info_.usage = usage;
+    info_.usage |= usage;
     return *this;
 }
 
@@ -122,6 +123,10 @@ std::unique_ptr<VulkanImage> VulkanImageCreator::make_unique() {
 std::shared_ptr<VulkanImage> VulkanImageCreator::make_shared() {
     auto [image, allocation] = create();
     return std::make_shared<VulkanImage>(allocator_, allocation, image, info_);}
+
+const VkImageCreateInfo &VulkanImageCreator::info() {
+    return info_;
+}
 
 VulkanImageViewCreator::VulkanImageViewCreator(VkDevice device)
 : device_(device)
@@ -230,6 +235,10 @@ std::shared_ptr<VulkanImageView> VulkanImageViewCreator::make_shared() {
     return std::make_shared<VulkanImageView>(device_, create(), info_);
 }
 
+const VkImageViewCreateInfo& VulkanImageViewCreator::info() const {
+    return info_;
+}
+
 VulkanImage::VulkanImage(VmaAllocator allocator, VmaAllocation allocation, VkImage image,
                          const VkImageCreateInfo &aSpec)
 : allocator_(allocator)
@@ -256,4 +265,130 @@ VulkanImageView::~VulkanImageView() {
 
 VulkanImageView::operator VkImageView() const {
     return imageView_;
+}
+
+VulkanSamplerCreator::VulkanSamplerCreator(VkDevice device)
+: device_(device)
+, info_{
+   .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+   .magFilter = VK_FILTER_LINEAR,
+   .minFilter = VK_FILTER_LINEAR,
+   .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+   .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+   .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+   .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+   .minLod = 0,
+   .maxLod = 1,
+   .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+}{}
+
+VulkanSamplerCreator &VulkanSamplerCreator::flags(VkSamplerCreateFlags flags) {
+    info_.flags = flags;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::magFilter(VkFilter value) {
+    info_.magFilter = value;
+    return *this;
+}
+
+
+VulkanSamplerCreator &VulkanSamplerCreator::minFilter(VkFilter value) {
+    info_.minFilter = value;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::mipmapMode(VkSamplerMipmapMode mode) {
+    info_.mipmapMode = mode;
+    return *this;
+}
+
+VulkanSamplerCreator &
+VulkanSamplerCreator::addressMode(VkSamplerAddressMode u, VkSamplerAddressMode v, VkSamplerAddressMode w) {
+    info_.addressModeU = u;
+    info_.addressModeV = v;
+    info_.addressModeW = w;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::mipLodBias(float bias) {
+    info_.mipLodBias = bias;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::anisotropyEnable(bool enable) {
+    info_.anisotropyEnable = enable;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::maxAnisotropy(float maxValue) {
+    info_.maxAnisotropy = maxValue;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::compareEnable(bool enable) {
+    info_.compareEnable = enable;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::compareOp(VkCompareOp op) {
+    info_.compareOp = op;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::minLod(float value) {
+    info_.minLod = value;
+    return *this;
+}
+
+
+VulkanSamplerCreator &VulkanSamplerCreator::maxLod(float value) {
+    info_.maxLod = value;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::borderColor(VkBorderColor color) {
+    info_.borderColor = color;
+    return *this;
+}
+
+VulkanSamplerCreator &VulkanSamplerCreator::unnormalizedCoordinates(bool value) {
+    info_.unnormalizedCoordinates = value;
+    return *this;
+}
+
+VkSampler VulkanSamplerCreator::create() {
+    VkSampler sampler{};
+    auto status = vkCreateSampler(device_, &info_, nullptr, &sampler);
+
+    if(status != VK_SUCCESS) {
+        throw cpptrace::runtime_error{ "unable to create sampler" };
+    }
+
+    return sampler;
+}
+
+VulkanSamplerPtr VulkanSamplerCreator::make_unqiue() {
+    return std::make_unique<VulkanSampler>(device_, create(), info_);
+}
+
+VulkanSamplerSptr VulkanSamplerCreator::make_shared() {
+    return std::make_shared<VulkanSampler>(device_, create(), info_);
+}
+
+const VkSamplerCreateInfo &VulkanSamplerCreator::info() const {
+    return info_;
+}
+
+VulkanSampler::VulkanSampler(VkDevice device, VkSampler sampler, const VkSamplerCreateInfo &spec)
+: device_(device)
+, sampler_(sampler)
+, spec(spec){}
+
+VulkanSampler::~VulkanSampler(){
+    vkDestroySampler(device_, sampler_, nullptr);
+}
+
+VulkanSampler::operator VkSampler() const {
+    return sampler_;
 }

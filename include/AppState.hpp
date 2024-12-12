@@ -27,7 +27,7 @@ struct AppState {
         return colorBufferCount_;
     }
 
-    [[nodiscard]] const VkFormat screenFormat() const {
+    [[nodiscard]] const VkFormat& screenFormat() const {
         return screenFormat_;
     }
 

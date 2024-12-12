@@ -46,6 +46,8 @@ public:
 
     [[nodiscard]] uint32 currentFrame() const;
 
+    [[nodiscard]] bool msaaEnabled() const;
+
 private:
     void createCommandPool();
 

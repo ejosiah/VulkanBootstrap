@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.hpp"
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
@@ -18,7 +19,7 @@ public:
 
     ~VulkanBuffer();
 
-    void* map();
+    uint8* map();
 
     void unmap();
 
@@ -50,6 +51,10 @@ public:
     VulkanBufferCreator& sharingMode(VkSharingMode sharingMode);
 
     VulkanBufferCreator& addQueueFamilyIndex(uint32_t queueFamilyIndex);
+
+    std::tuple<VkBuffer, VmaAllocation, VmaAllocationCreateInfo> create();
+
+    std::unique_ptr<VulkanBuffer> make_unique();
 
     std::shared_ptr<VulkanBuffer> make_shared();
 

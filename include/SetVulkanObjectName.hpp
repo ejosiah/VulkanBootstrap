@@ -5,8 +5,7 @@
 #include <string_view>
 
 
-template<VkObjectType ObjectType>
-inline void setVulkanObjectName(VkDevice device, auto object, std::string_view name) {
+inline void setVulkanObjectName(VkDevice device, VkObjectType ObjectType, auto object, std::string_view name) {
 #ifndef NDEBUG
     VkDebugUtilsObjectNameInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
     info.objectType = ObjectType;

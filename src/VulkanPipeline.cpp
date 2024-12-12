@@ -65,7 +65,7 @@ VkDescriptorPool VulkanDescriptorPoolCreator::create() {
     return descriptorPool;
 }
 
-std::unique_ptr<VulkanDescriptorPool> VulkanDescriptorPoolCreator::make_unique() {
+std::unique_ptr<VulkanDescriptorPool> VulkanDescriptorPoolCreator:: make_unique() {
     return std::make_unique<VulkanDescriptorPool>( device_, create() );
 }
 

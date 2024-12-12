@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <type_traits>
+#include <vector>
 
 template<class... Ts>
 struct overloaded : Ts... { using Ts::operator()...; };
@@ -30,3 +31,5 @@ using int32 = uint32_t;
 using uint32 = uint32_t;
 using int64 = int64_t;
 using uint64 = uint64_t;
+
+using ResourceHandle = uint32;

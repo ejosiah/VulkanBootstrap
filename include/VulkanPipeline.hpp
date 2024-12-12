@@ -23,6 +23,9 @@ private:
     VkDescriptorPool descriptorPool_;
 };
 
+using VulkanDescriptorPoolPtr = std::unique_ptr<VulkanDescriptorPool>;
+using VulkanDescriptorPoolSptr = std::shared_ptr<VulkanDescriptorPool>;
+
 class VulkanDescriptorPoolCreator {
 public:
     VulkanDescriptorPoolCreator(VkDevice device);
@@ -35,9 +38,9 @@ public:
 
     VkDescriptorPool create();
 
-    std::unique_ptr<VulkanDescriptorPool> make_unique();
+    VulkanDescriptorPoolPtr make_unique();
 
-    std::shared_ptr<VulkanDescriptorPool> make_shared();
+    VulkanDescriptorPoolSptr make_shared();
 
 private:
     VkDevice device_;

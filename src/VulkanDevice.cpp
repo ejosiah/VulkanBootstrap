@@ -1,6 +1,7 @@
 #include "Types.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanEnumerations.hpp"
+#include "Texture.hpp"
 #define VMA_IMPLEMENTATION
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
@@ -9,10 +10,11 @@
 #include "SetVulkanObjectName.hpp"
 #include <utility>
 #include <format>
+#include <ranges>
 
 VulkanDevice::VulkanDevice(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
                            VmaAllocator allocator, std::map<VkQueueFlags, uint32> queueFamilyIndex,
-                           std::map<VkQueueFlags, VkQueue> queues)
+                           std::map<VkQueueFlags, VkQueue> queues, std::unique_ptr<VulkanCommandPool> graphicsCommandPool)
 
 :instance_(instance)
 , physicalDevice_(physicalDevice)
@@ -20,9 +22,11 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkPhysicalDevice physicalDevice,
 , allocator_(allocator)
 , queueFamilyIndex_(std::move(queueFamilyIndex))
 , queues_(std::move(queues))
+, graphicsCommandPool_(std::move(graphicsCommandPool))
 {}
 
 VulkanDevice::~VulkanDevice() {
+    graphicsCommandPool_.reset();
     vmaDestroyAllocator(allocator_);
     vkDestroyDevice(device_, VK_NULL_HANDLE);
 }
@@ -62,10 +66,9 @@ VulkanDeviceBuilder VulkanDevice::builder(VkInstance instance) {
 }
 
 VkQueue VulkanDevice::getQueue(uint32 queueFamilyIndex) const {
-    auto itr = std::find_if(queueFamilyIndex_.begin(), queueFamilyIndex_.end(),
-                            [i=queueFamilyIndex](auto e){ return e.second == i; });
-    if(itr != queueFamilyIndex_.end()){
-        return queues_.at(itr->first);
+    auto res = std::ranges::find_if(queueFamilyIndex_, [i=queueFamilyIndex](auto e){ return e.second == i; });
+    if(res != queueFamilyIndex_.end()){
+        return queues_.at(res->first);
     }else {
         return nullptr;
     }
@@ -141,7 +144,7 @@ VulkanImageCreator VulkanDevice::image() {
 }
 
 VulkanImageViewCreator VulkanDevice::imageView() {
-    return { device_ };
+    return VulkanImageViewCreator{ device_ };
 }
 
 VulkanBufferCreator VulkanDevice::buffer() {
@@ -187,9 +190,12 @@ VkPhysicalDeviceProperties VulkanDevice::getProperties() const {
     return properties;
 }
 
-void VulkanDevice::setName(auto object, const std::string &name) {
-    setVulkanObjectName<decltype(object)::ObjectType>(device_, *object, name);
-    setter(device_, object, name);
+VulkanCommandPool* VulkanDevice::graphicsCommandPool() {
+    return graphicsCommandPool_.get();
+}
+
+TextureBuilder VulkanDevice::texture() {
+    return TextureBuilder(this);
 }
 
 VulkanDeviceBuilder::VulkanDeviceBuilder(VkInstance instance)
@@ -251,7 +257,12 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
         vkGetDeviceQueue(device, index, 0, &queue);
         queues[flag] = queue;
     }
-    return std::make_shared<VulkanDevice>(instance_, physicalDevice_, device, allocator, queueFamilyIndex, queues);
+    auto graphicsCommandPool = VulkanCommandPool::make_unique(device, queues.at(VK_QUEUE_GRAPHICS_BIT)
+                                                                                    , queueFamilyIndex.at(VK_QUEUE_GRAPHICS_BIT),
+                                                                                            VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+    setVulkanObjectName(device, VK_OBJECT_TYPE_COMMAND_POOL, graphicsCommandPool->handle(), "device_graphics_command_pool");
+
+    return std::make_shared<VulkanDevice>(instance_, physicalDevice_, device, allocator, queueFamilyIndex, queues, std::move(graphicsCommandPool));
 }
 
 std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {

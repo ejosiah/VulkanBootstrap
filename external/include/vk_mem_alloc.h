@@ -2760,7 +2760,7 @@ VmaDetailedStatistics* VMA_NOT_NULL pStats);
 /** \brief Builds and returns a null-terminated string in JSON format with information about given #VmaVirtualBlock.
 \param virtualBlock Virtual block.
 \param[out] ppStatsString Returned string.
-\param detailedMap Pass `VK_FALSE` to only obtain statistics as returned by vmaCalculateVirtualBlockStatistics(). Pass `VK_TRUE` to also obtain full list of allocations and free spaces.
+\param detailedMap Pass `VK_FALSE` to only obtain statistics as returned by vmaCalculateVirtualBlockStatistics(). Pass `VK_TRUE` to also acquire full list of allocations and free spaces.
 
 Returned string must be freed using vmaFreeVirtualBlockStatsString().
 */
@@ -17091,7 +17091,7 @@ The library can also internally decide to use dedicated allocation in some cases
 
 \page memory_mapping Memory mapping
 
-To "map memory" in Vulkan means to obtain a CPU pointer to `VkDeviceMemory`,
+To "map memory" in Vulkan means to acquire a CPU pointer to `VkDeviceMemory`,
 to be able to read from it or write to it in CPU code.
 Mapping is possible only of memory allocated from a memory type that has
 `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` flag.
@@ -17268,9 +17268,9 @@ Returned structure #VmaBudget contains quantities expressed in bytes, per Vulkan
 Please note that this function returns different information and works faster than
 vmaCalculateStatistics(). vmaGetHeapBudgets() can be called every frame or even before every
 allocation, while vmaCalculateStatistics() is intended to be used rarely,
-only to obtain statistical information, e.g. for debugging purposes.
+only to acquire statistical information, e.g. for debugging purposes.
 
-It is recommended to use <b>VK_EXT_memory_budget</b> device extension to obtain information
+It is recommended to use <b>VK_EXT_memory_budget</b> device extension to acquire information
 about the budget from Vulkan device. VMA is able to use this extension automatically.
 When not enabled, the allocator behaves same way, but then it estimates current usage
 and available budget based on its internal information and Vulkan memory heap sizes,
@@ -17314,7 +17314,7 @@ Finally, you can also use #VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT flag to make
 a new allocation is created only when it fits inside one of the existing memory blocks.
 If it would require to allocate a new block, if fails instead with `VK_ERROR_OUT_OF_DEVICE_MEMORY`.
 This also ensures that the function call is very fast because it never goes to Vulkan
-to obtain a new block.
+to acquire a new block.
 
 \note Creating \ref custom_memory_pools with VmaPoolCreateInfo::minBlockCount
 set to more than 0 will currently try to allocate memory blocks without checking whether they
@@ -17457,7 +17457,7 @@ It can be useful if you want to:
 To use custom memory pools:
 
 -# Fill VmaPoolCreateInfo structure.
--# Call vmaCreatePool() to obtain #VmaPool handle.
+-# Call vmaCreatePool() to acquire #VmaPool handle.
 -# When making an allocation, set VmaAllocationCreateInfo::pool to this handle.
    You don't need to specify any other parameters of this structure, like `usage`.
 
@@ -17831,7 +17831,7 @@ especially the amount of memory allocated from Vulkan.
 
 \section statistics_numeric_statistics Numeric statistics
 
-If you need to obtain basic statistics about memory usage per heap, together with current budget,
+If you need to acquire basic statistics about memory usage per heap, together with current budget,
 you can call function vmaGetHeapBudgets() and inspect structure #VmaBudget.
 This is useful to keep track of memory usage and stay within budget
 (see also \ref staying_within_budget).
@@ -18075,7 +18075,7 @@ It might be more convenient, but you need to make sure to use this new unit cons
 
 \section virtual_allocator_statistics Statistics
 
-You can obtain statistics of a virtual block using vmaGetVirtualBlockStatistics()
+You can acquire statistics of a virtual block using vmaGetVirtualBlockStatistics()
 (to get brief statistics that are fast to calculate)
 or vmaCalculateVirtualBlockStatistics() (to get more detailed statistics, slower to calculate).
 The functions fill structures #VmaStatistics, #VmaDetailedStatistics respectively - same as used by the normal Vulkan memory allocator.

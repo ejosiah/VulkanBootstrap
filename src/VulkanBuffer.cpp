@@ -16,12 +16,12 @@ VulkanBuffer::~VulkanBuffer() {
     vmaDestroyBuffer(allocator_, buffer_, allocation_);
 }
 
-void *VulkanBuffer::map() {
+uint8 *VulkanBuffer::map() {
     if(allocationSpec.usage == VMA_MEMORY_USAGE_GPU_ONLY){
         return nullptr;
     };
     vmaMapMemory(allocator_, allocation_, &mapping_);
-    return mapping_;
+    return reinterpret_cast<uint8*>(mapping_);
 }
 
 void VulkanBuffer::unmap() {
@@ -70,7 +70,7 @@ VulkanBufferCreator &VulkanBufferCreator::addQueueFamilyIndex(uint32_t queueFami
     return *this;
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBufferCreator::make_shared() {
+std::tuple<VkBuffer, VmaAllocation, VmaAllocationCreateInfo> VulkanBufferCreator::create() {
     info_.queueFamilyIndexCount = to<uint32>(queueFamilyIndexes_.size());
     info_.pQueueFamilyIndices = queueFamilyIndexes_.data();
 
@@ -82,13 +82,22 @@ std::shared_ptr<VulkanBuffer> VulkanBufferCreator::make_shared() {
     vmaCreateBuffer(allocator_, &info_, &allocInfo, &buffer, &allocation, nullptr);
 
     if(!name_.empty()){
-        setVulkanObjectName<VK_OBJECT_TYPE_BUFFER>(device_, buffer, name_);
+        setVulkanObjectName(device_, VK_OBJECT_TYPE_BUFFER, buffer, name_);
     }
+    return std::make_tuple(buffer, allocation, allocInfo);
+}
 
+std::shared_ptr<VulkanBuffer> VulkanBufferCreator::make_shared() {
+    auto [buffer, allocation, allocInfo] = create();
     return std::make_shared<VulkanBuffer>(allocator_, allocation, buffer, info_, allocInfo);
 }
 
 VulkanBufferCreator &VulkanBufferCreator::name(std::string_view name) {
     name_ = name;
     return *this;
+}
+
+std::unique_ptr<VulkanBuffer> VulkanBufferCreator::make_unique() {
+    auto [buffer, allocation, allocInfo] = create();
+    return std::make_unique<VulkanBuffer>(allocator_, allocation, buffer, info_, allocInfo);
 }

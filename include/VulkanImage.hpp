@@ -38,6 +38,30 @@ private:
     VkImageView imageView_;
 };
 
+class VulkanSampler {
+public:
+    static constexpr VkObjectType  ObjectType = VK_OBJECT_TYPE_SAMPLER;
+
+    const VkSamplerCreateInfo spec;
+
+    VulkanSampler(VkDevice device, VkSampler sampler, const VkSamplerCreateInfo& spec);
+
+    ~VulkanSampler();
+
+    operator VkSampler() const;
+
+public:
+    VkDevice device_;
+    VkSampler sampler_;
+};
+
+using VulkanImagePtr = std::unique_ptr<VulkanImage>;
+using VulkanImageSptr = std::shared_ptr<VulkanImage>;
+using VulkanImageViewPtr = std::unique_ptr<VulkanImageView>;
+using VulkanImageViewSptr = std::shared_ptr<VulkanImageView>;
+using VulkanSamplerPtr = std::unique_ptr<VulkanSampler>;
+using VulkanSamplerSptr = std::shared_ptr<VulkanSampler>;
+
 class VulkanImageCreator {
 public:
     VulkanImageCreator(VkDevice device, VmaAllocator allocator);
@@ -76,9 +100,11 @@ public:
 
     std::tuple<VkImage, VmaAllocation> create();
 
-    std::unique_ptr<VulkanImage> make_unique();
+    [[nodiscard]] const VkImageCreateInfo& info();
 
-    std::shared_ptr<VulkanImage> make_shared();
+    VulkanImagePtr make_unique();
+
+    VulkanImageSptr make_shared();
 
 private:
     VkDevice device_{};
@@ -88,7 +114,7 @@ private:
 
 class VulkanImageViewCreator{
 public:
-    VulkanImageViewCreator(VkDevice device);
+    explicit VulkanImageViewCreator(VkDevice device);
 
     VulkanImageViewCreator& flags(VkImageViewCreateFlagBits flags);
 
@@ -116,13 +142,61 @@ public:
 
     VulkanImageViewCreator& layerCount(uint32_t count);
 
+    [[nodiscard]] const VkImageViewCreateInfo& info() const;
+
     VkImageView create();
 
-    std::unique_ptr<VulkanImageView> make_unique();
+    VulkanImageViewPtr make_unique();
 
-    std::shared_ptr<VulkanImageView> make_shared();
+    VulkanImageViewSptr make_shared();
 
 private:
     VkDevice device_{};
     VkImageViewCreateInfo info_;
+};
+
+class VulkanSamplerCreator {
+public:
+    explicit VulkanSamplerCreator(VkDevice device);
+
+    VulkanSamplerCreator& flags(VkSamplerCreateFlags flags);
+
+    VulkanSamplerCreator& magFilter(VkFilter value);
+
+    VulkanSamplerCreator& minFilter(VkFilter value);
+
+    VulkanSamplerCreator& mipmapMode(VkSamplerMipmapMode mode);
+
+    VulkanSamplerCreator& addressMode(VkSamplerAddressMode u, VkSamplerAddressMode v,
+                                      VkSamplerAddressMode w = VK_SAMPLER_ADDRESS_MODE_REPEAT);
+
+    VulkanSamplerCreator& mipLodBias(float bias);
+
+    VulkanSamplerCreator& anisotropyEnable(bool enable);
+
+    VulkanSamplerCreator& maxAnisotropy(float maxValue);
+
+    VulkanSamplerCreator& compareEnable(bool enable);
+
+    VulkanSamplerCreator& compareOp(VkCompareOp op);
+
+    VulkanSamplerCreator& minLod(float value);
+
+    VulkanSamplerCreator& maxLod(float value);
+
+    VulkanSamplerCreator& borderColor(VkBorderColor color);
+
+    VulkanSamplerCreator& unnormalizedCoordinates(bool value);
+
+    VkSampler create();
+
+    VulkanSamplerPtr make_unqiue();
+
+    VulkanSamplerSptr make_shared();
+
+    [[nodiscard]] const VkSamplerCreateInfo& info() const;
+
+private:
+    VkDevice device_;
+    VkSamplerCreateInfo info_;
 };

@@ -67,6 +67,25 @@ VulkanCommandPool::make_shared(VkDevice device, VkQueue queue, uint32 queueFamil
     return std::make_shared<VulkanCommandPool>(device, queue, commandPool);
 }
 
+
+std::unique_ptr<VulkanCommandPool>
+VulkanCommandPool::make_unique(VkDevice device, VkQueue queue, uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags) {
+    VkCommandPoolCreateInfo createInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = flags,
+        .queueFamilyIndex = queueFamilyIndex
+    };
+
+    VkCommandPool commandPool;
+    vkCreateCommandPool(device, &createInfo, nullptr, &commandPool);
+    return std::make_unique<VulkanCommandPool>(device, queue, commandPool);
+}
+
 void VulkanCommandPool::reset() {
     vkResetCommandPool(device_, commandPool_, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT );
+}
+
+
+VkCommandPool VulkanCommandPool::handle() {
+    return commandPool_;
 }

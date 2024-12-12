@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "VulkanPipeline.hpp"
+#include "Texture.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,6 +14,8 @@ public:
     ~CubeScene() override = default;
 
     void init() final;
+
+    void createTexture();
 
     void update() override;
 
@@ -43,5 +46,6 @@ private:
     VkDescriptorSet descriptorSet_;
 
     glm::mat4* transform{};
+    Texture texture_;
 
 };

@@ -4,6 +4,7 @@
 #include "VulkanImage.hpp"
 #include "VulkanBuffer.hpp"
 #include "VulkanPipeline.hpp"
+#include "SetVulkanObjectName.hpp"
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -26,13 +27,17 @@ enum VkQueueFlagBitsExtras {
 class VulkanDevice {
 public:
     friend class VulkanDeviceBuilder;
+    friend class TextureBuilder;
+    friend class TextureImageCreator;
+    friend class TextureSamplerCreator;
     VulkanDevice(
         VkInstance instance,
         VkPhysicalDevice physicalDevice,
         VkDevice device,
         VmaAllocator allocator,
         std::map<VkQueueFlags, uint32_t> queueFamilyIndex,
-        std::map<VkQueueFlags, VkQueue> queues);
+        std::map<VkQueueFlags, VkQueue> queues,
+        std::unique_ptr<VulkanCommandPool> graphicsCommandPool);
 
     ~VulkanDevice();
 
@@ -85,7 +90,12 @@ public:
 
     void wait();
 
-    void setName(auto object, const std::string& name);
+    VulkanCommandPool* graphicsCommandPool();
+
+    template<typename Object>
+    void setName(Object object, const std::string& name);
+
+    TextureBuilder texture();
 
 private:
     VkInstance instance_;
@@ -94,7 +104,11 @@ private:
     VmaAllocator allocator_;
     std::map<VkQueueFlags, uint32_t> queueFamilyIndex_;
     std::map<VkQueueFlags, VkQueue> queues_;
+    std::unique_ptr<VulkanCommandPool> graphicsCommandPool_;
 };
+
+using VulkanDevicePtr = std::unique_ptr<VulkanDevice>;
+using VulkanDeviceSptr = std::shared_ptr<VulkanDevice>;
 
 class VulkanDeviceBuilder {
 public:
@@ -109,14 +123,16 @@ public:
     VulkanDeviceBuilder& addUniqueQueue(VkQueueFlagBits queueType);
 
     VulkanDeviceBuilder& addLayer(const char* layer);
+
     VulkanDeviceBuilder& addExtension(const char* extension);
 
     VulkanDeviceBuilder& addLayers(std::vector<const char*> layers);
+
     VulkanDeviceBuilder& addExtensions(std::vector<const char*> extensions);
 
     VkPhysicalDevice pickDevice(DevicePicker&& picker = [](std::span<VkPhysicalDevice> devices){ return devices.front(); });
 
-    std::shared_ptr<VulkanDevice> make_shared();
+    VulkanDeviceSptr make_shared();
 
 private:
     std::map<VkQueueFlags, uint32_t> getQueueFamilyIndexes();
@@ -137,3 +153,14 @@ private:
     VkPhysicalDeviceFeatures enabledFeatures_{ };
 
 };
+
+template<typename Object>
+void VulkanDevice::setName(Object object, const std::string &name) {
+    if constexpr (std::is_pointer_v<Object>) {
+        setVulkanObjectName(device_, object->objectType, object->handle(), name);
+    }else {
+        setVulkanObjectName(device_, object.objectType, object.handle(), name);
+    }
+}
+
+

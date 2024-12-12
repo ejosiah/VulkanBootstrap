@@ -21,10 +21,8 @@ void Scene::init0() {
 }
 
 void Scene::invalidate0() {
-    static VkFormat format;
-
     renderingInfo_.colorAttachmentCount = 1;
-    renderingInfo_.pColorAttachmentFormats = &format;
+    renderingInfo_.pColorAttachmentFormats = &appState_.screenFormat();
     renderingInfo_.depthAttachmentFormat = appState_.screenDepthFormat();
     renderingInfo_.rasterizationSamples = appState_.screenSampleCount();
     inheritanceInfo_.pNext = &renderingInfo_;

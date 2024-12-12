@@ -1,5 +1,7 @@
 #include "BootStrap.hpp"
 
+#include "data_structure/ResourcePool.hpp"
+
 VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
     WindowInterface::connect();
     auto result = volkInitialize();
@@ -22,12 +24,12 @@ VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
     auto debugMessenger = VulkanDebugMessenger::createDebugMessenger(instance->handle());
 
     auto device =
-            VulkanDevice::builder(instance->handle())
-                    .addExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-                    .addExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)
-                    .addQueue(VK_QUEUE_GRAPHICS_BIT)
-                    .addSurface(instance->surface())
-                    .make_shared();
+        VulkanDevice::builder(instance->handle())
+            .addExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+            .addExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)
+            .addQueue(VK_QUEUE_GRAPHICS_BIT)
+            .addSurface(instance->surface())
+        .make_shared();
 
     auto scBuilder = VulkanSwapchain::builder(device, instance->surface());
     auto swapchain =

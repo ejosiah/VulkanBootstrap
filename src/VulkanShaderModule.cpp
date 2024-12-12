@@ -48,7 +48,7 @@ std::vector<uint32> VulkanShaderModuleCreator::getCode() {
     return std::visit(
         overloaded(
             [](const std::filesystem::path& path){
-                auto code = IO::loadFile(path);
+                auto code = io::loadFile(path);
                 std::vector<uint32> codeU32(code.size()/sizeof(uint32));
                 std::memcpy(codeU32.data(), code.data(), code.size());
                 return codeU32;

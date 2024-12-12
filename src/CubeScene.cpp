@@ -11,6 +11,7 @@
 struct Mesh {
     glm::vec3 position{};
     glm::vec3 normal{0, 0, 1};
+    glm::vec2 uv{};
 };
 
 constexpr glm::mat4 GL_TO_VKN_CLIP(1.0f,  0.0f, 0.0f, 0.0f,
@@ -20,40 +21,40 @@ constexpr glm::mat4 GL_TO_VKN_CLIP(1.0f,  0.0f, 0.0f, 0.0f,
 
 std::vector<Mesh> cube{
         // FRONT FACE
-        {{-1.0, -1.0, 1.0},  {0.0f,  0.0f,  1.0f}},
-        {{1.0,  -1.0, 1.0},  {0.0f,  0.0f,  1.0f}},
-        {{1.0,  1.0,  1.0},  {0.0f,  0.0f,  1.0f}},
-        {{-1.0, 1.0,  1.0},  {0.0f,  0.0f,  1.0f}},
+        {{-1.0, -1.0, 1.0},  {0.0f,  0.0f,  1.0f}, {0, 0}},
+        {{1.0,  -1.0, 1.0},  {0.0f,  0.0f,  1.0f}, {1, 0}},
+        {{1.0,  1.0,  1.0},  {0.0f,  0.0f,  1.0f}, {1, 1}},
+        {{-1.0, 1.0,  1.0},  {0.0f,  0.0f,  1.0f}, {0, 1}},
 
         // RIGHT FACE
-        {{1.0,  -1.0, 1.0},  {1.0f,  0.0f,  0.0f}},
-        {{1.0,  -1.0, -1.0}, {1.0f,  0.0f,  0.0f}},
-        {{1.0,  1.0,  -1.0}, {1.0f,  0.0f,  0.0f}},
-        {{1.0,  1.0,  1.0,}, {1.0f,  0.0f,  0.0f}},
+        {{1.0,  -1.0, 1.0},  {1.0f,  0.0f,  0.0f}, {0, 0}},
+        {{1.0,  -1.0, -1.0}, {1.0f,  0.0f,  0.0f}, {1, 0}},
+        {{1.0,  1.0,  -1.0}, {1.0f,  0.0f,  0.0f}, {1, 1}},
+        {{1.0,  1.0,  1.0,}, {1.0f,  0.0f,  0.0f}, {0, 1}},
 
         // BACK FACE
-        {{-1.0, -1.0, -1.0}, {0.0f,  0.0f,  -1.0f}},
-        {{-1.0, 1.0,  -1.0}, {0.0f,  0.0f,  -1.0f}},
-        {{1.0,  1.0,  -1.0}, {0.0f,  0.0f,  -1.0f}},
-        {{1.0,  -1.0, -1.0}, {0.0f,  0.0f,  -1.0f}},
+        {{-1.0, -1.0, -1.0}, {0.0f,  0.0f,  -1.0f}, {1, 0}},
+        {{-1.0, 1.0,  -1.0}, {0.0f,  0.0f,  -1.0f}, {1, 1}},
+        {{1.0,  1.0,  -1.0}, {0.0f,  0.0f,  -1.0f}, {0, 1}},
+        {{1.0,  -1.0, -1.0}, {0.0f,  0.0f,  -1.0f}, {0, 0}},
 
         // LEFT FACE
-        {{-1.0, -1.0, 1.0,}, {-1.0f, 0.0f,  0.0f}},
-        {{-1.0, 1.0,  1.0},  {-1.0f, 0.0f,  0.0f}},
-        {{-1.0, 1.0,  -1.0}, {-1.0f, 0.0f,  0.0f}},
-        {{-1.0, -1.0, -1.0}, {-1.0f, 0.0f,  0.0f}},
+        {{-1.0, -1.0, 1.0,}, {-1.0f, 0.0f,  0.0f}, {1, 0}},
+        {{-1.0, 1.0,  1.0},  {-1.0f, 0.0f,  0.0f}, {1, 1}},
+        {{-1.0, 1.0,  -1.0}, {-1.0f, 0.0f,  0.0f}, {0, 1}},
+        {{-1.0, -1.0, -1.0}, {-1.0f, 0.0f,  0.0f}, {0, 0}},
 
         // BOTTOM FACE
-        {{-1.0, -1.0, 1.0,}, {0.0f,  -1.0f, 0.0f}},
-        {{-1.0, -1.0, -1.0}, {0.0f,  -1.0f, 0.0f}},
-        {{1.0,  -1.0, -1.0}, {0.0f,  -1.0f, 0.0f}},
-        {{1.0,  -1.0, 1.0},  {0.0f,  -1.0f, 0.0f}},
+        {{-1.0, -1.0, 1.0,}, {0.0f,  -1.0f, 0.0f}, {0, 1}},
+        {{-1.0, -1.0, -1.0}, {0.0f,  -1.0f, 0.0f}, {0, 0}},
+        {{1.0,  -1.0, -1.0}, {0.0f,  -1.0f, 0.0f}, {1, 0}},
+        {{1.0,  -1.0, 1.0},  {0.0f,  -1.0f, 0.0f}, {1, 1}},
 
         // TOP FACE
-        {{-1.0, 1.0,  1.0},  {0.0f,  1.0f,  0.0f}},
-        {{1.0,  1.0,  1.0},  {0.0f,  1.0f,  0.0f}},
-        {{1.0,  1.0,  -1.0}, {0.0f,  1.0f,  0.0f}},
-        {{-1.0, 1.0,  -1.0}, {0.0f,  1.0f,  0.0f}},
+        {{-1.0, 1.0,  1.0},  {0.0f,  1.0f,  0.0f}, {0, 0}},
+        {{1.0,  1.0,  1.0},  {0.0f,  1.0f,  0.0f}, {1, 0}},
+        {{1.0,  1.0,  -1.0}, {0.0f,  1.0f,  0.0f}, {1, 1}},
+        {{-1.0, 1.0,  -1.0}, {0.0f,  1.0f,  0.0f}, {0, 1}},
 };
 
 std::vector<uint16> indices {
@@ -83,6 +84,7 @@ CubeScene::CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appSt
         : Scene(std::move(device), appState) {}
 
 void CubeScene::init() {
+    createTexture();
     createBuffers();
     invalidate();
     Events::ClearScreen(0, 0, 0);
@@ -156,11 +158,12 @@ void CubeScene::createPipeline() {
     std::vector<VkPipelineShaderStageCreateInfo> stages{ vertexStageCreateInfo, fragmentStageCreateInfo};
 
 
-    VkVertexInputBindingDescription bindingDescription{0, sizeof(glm::vec3) * 2, VK_VERTEX_INPUT_RATE_VERTEX };
+    VkVertexInputBindingDescription bindingDescription{0, sizeof(Mesh), VK_VERTEX_INPUT_RATE_VERTEX };
 
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-    attributeDescriptions[0] = {0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0};
-    attributeDescriptions[1] = {1, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(glm::vec3)};
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
+    attributeDescriptions[0] = {0, 0, VK_FORMAT_R32G32B32_SFLOAT, to<uint32>(offsetof(Mesh, position))};
+    attributeDescriptions[1] = {1, 0, VK_FORMAT_R32G32B32_SFLOAT, to<uint32>(offsetof(Mesh, normal))};
+    attributeDescriptions[2] = {2, 0, VK_FORMAT_R32G32_SFLOAT, to<uint32>(offsetof(Mesh, uv))};
 
     VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
     vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
@@ -243,6 +246,7 @@ void CubeScene::createDescriptorPool() {
         device_->descriptorPool()
             .flags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
             .addPoolSize({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1})
+            .addPoolSize({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 })
             .maxSets(1)
         .make_unique();
 }
@@ -251,21 +255,31 @@ void CubeScene::createDescriptorSetLayout() {
     descriptorSetLayout_ =
         device_->descriptorSetLayout()
             .addBinding({ 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT})
+            .addBinding({ 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT})
         .make_unique();
 }
 
 void CubeScene::updateDescriptorSet() {
     descriptorSet_ = descriptorPool_->allocate(*descriptorSetLayout_);
-    VkWriteDescriptorSet write{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-    write.dstSet = descriptorSet_;
-    write.dstBinding = 0;
-    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    write.descriptorCount = 1;
+    std::vector<VkWriteDescriptorSet> writes(2);
+    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[0].dstSet = descriptorSet_;
+    writes[0].dstBinding = 0;
+    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writes[0].descriptorCount = 1;
 
     VkDescriptorBufferInfo bufferInfo{*transformBuffer_, 0, VK_WHOLE_SIZE};
-    write.pBufferInfo = &bufferInfo;
-
-    vkUpdateDescriptorSets(*device_, 1, &write, 0, nullptr);
+    writes[0].pBufferInfo = &bufferInfo;
+    
+    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[1].dstSet = descriptorSet_;
+    writes[1].dstBinding = 1;
+    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writes[1].descriptorCount = 1;
+    VkDescriptorImageInfo imageInfo{ *texture_.sampler, *texture_.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+    writes[1].pImageInfo = &imageInfo;
+    
+    vkUpdateDescriptorSets(*device_, writes.size(), writes.data(), 0, nullptr);
 
 }
 
@@ -299,5 +313,17 @@ void CubeScene::record(VkCommandBuffer commandBuffer) {
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, *cubeVertices_, &offset);
     vkCmdBindIndexBuffer(commandBuffer, *cubeIndices_, 0, VK_INDEX_TYPE_UINT16);
     vkCmdDrawIndexed(commandBuffer, 36, 1, 0, 0, 0);
+}
+
+void CubeScene::createTexture() {
+    texture_ =
+        device_->texture()
+            .addPath("../../resources/images/vulkan.png")
+            .image()
+                .format(VK_FORMAT_R8G8B8A8_SRGB)
+                .usage(VK_IMAGE_USAGE_SAMPLED_BIT)
+            .imageView()
+            .sampler()
+        .create();
 }
 

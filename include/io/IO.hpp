@@ -1,13 +1,21 @@
 #pragma once
 
+#include "Types.hpp"
 #include <filesystem>
 #include <vector>
 
-using ByteString = std::vector<char>;
+namespace io {
+    using ByteString = std::vector<char>;
 
-struct IO {
-    static ByteString loadFile(const std::filesystem::path& path);
+    struct Image {
+        int width{1};
+        int height{1};
+        int channels{4};
+        size_t size;
+        ByteString data;
+    };
 
-private:
-    IO() = default;
-};
+    ByteString loadFile(const std::filesystem::path &path);
+
+    Image loadImage(const std::filesystem::path &path, int numChannels = 4, bool flip = true);
+}
