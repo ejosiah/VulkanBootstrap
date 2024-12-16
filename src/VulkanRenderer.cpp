@@ -16,12 +16,14 @@ VulkanRenderer::VulkanRenderer(
         std::shared_ptr<VulkanDevice> device,
         std::unique_ptr<VulkanSwapchain> swapchain,
         VulkanSwapchainBuilder swapchainBuilder,
+        BatchSubmission& batchSubmission,
         VkSampleCountFlagBits samples)
         : window_(std::move(window))
         , instance_(std::move(instance))
         , device_(std::move(device))
         , swapchain_(std::move(swapchain))
         , swapchainBuilder_(std::move(swapchainBuilder))
+        , batchSubmission_(batchSubmission)
         , samples_(ensureSampleCount(samples, device_))
         {}
 
@@ -47,10 +49,10 @@ void VulkanRenderer::renderFrame(VkCommandBuffer commandBuffer) {
     renderingInfo_.pColorAttachments = &colorBuffer_.attachment[imageIndex];
     recordScene(commandBuffer);
 
-    renderSubmitInfo_.pCommandBuffers = &renderCommandBuffer_[currentFrame_];
-    renderSubmitInfo_.pWaitSemaphores = &acquireImageSemaphore_[currentFrame_];
-    renderSubmitInfo_.pSignalSemaphores = &renderingFinishedSemaphore_[currentFrame_];
-    vkQueueSubmit(device_->getGraphicsQueue(), 1, &renderSubmitInfo_, inFlightFrame_[currentFrame_]);
+    batchSubmission_.enqueue(renderCommandBuffer_[currentFrame_]);
+    batchSubmission_.enqueueWait(acquireImageSemaphore_[currentFrame_], VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    batchSubmission_.enqueueSignal(renderingFinishedSemaphore_[currentFrame_]);
+    batchSubmission_.execute(inFlightFrame_[currentFrame_]);
 
     presentInfo_.pWaitSemaphores = &renderingFinishedSemaphore_[currentFrame_];
     presentInfo_.pImageIndices = &imageIndex;
@@ -90,13 +92,6 @@ void VulkanRenderer::createSynchronizationPrimitives() {
             throw std::runtime_error{"unable to create inFlightFrame_ fence"};
         }
     }
-
-    static VkPipelineStageFlags waitStage{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    renderSubmitInfo_ = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-    renderSubmitInfo_.waitSemaphoreCount = 1;
-    renderSubmitInfo_.pWaitDstStageMask = &waitStage;
-    renderSubmitInfo_.commandBufferCount = 1;
-    renderSubmitInfo_.signalSemaphoreCount = 1;
 
     presentInfo_ = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
     presentInfo_.waitSemaphoreCount = 1;

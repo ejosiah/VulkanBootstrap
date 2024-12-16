@@ -33,13 +33,14 @@ VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
 
     auto scBuilder = VulkanSwapchain::builder(device, instance->surface());
     auto swapchain =
-            scBuilder
-                    .setImageFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-                    .setPresentMode(VK_PRESENT_MODE_IMMEDIATE_KHR)
-                    .make_unique();
+        scBuilder
+            .setImageFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            .setPresentMode(VK_PRESENT_MODE_IMMEDIATE_KHR)
+        .make_unique();
 
-    std::shared_ptr<Scene> scene = sceneFactory(device, AppState::instance());
-    auto renderer = std::make_shared<VulkanRenderer>(window, instance, device, std::move(swapchain), scBuilder, VK_SAMPLE_COUNT_16_BIT);
+    auto& batchSubmission = BatchSubmission::instance(device->getGraphicsQueue());
+    std::shared_ptr<Scene> scene = sceneFactory(device, AppState::instance(), batchSubmission);
+    auto renderer = std::make_shared<VulkanRenderer>(window, instance, device, std::move(swapchain), scBuilder, batchSubmission, VK_SAMPLE_COUNT_16_BIT);
 
     return { window, instance, debugMessenger, device, renderer, scene, AppState::instance() };
 }

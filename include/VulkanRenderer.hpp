@@ -8,6 +8,7 @@
 #include "VulkanCommandPool.hpp"
 #include "VulkanImage.hpp"
 #include <array>
+#include "BatchSubmission.hpp"
 
 class VulkanRenderer {
 public:
@@ -17,6 +18,7 @@ public:
             std::shared_ptr<VulkanDevice> device,
             std::unique_ptr<VulkanSwapchain> swapchain,
             VulkanSwapchainBuilder swapchainBuilder,
+            BatchSubmission& batchSubmission,
             VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
 
 
@@ -68,6 +70,7 @@ private:
     std::shared_ptr<VulkanDevice> device_;
     std::unique_ptr<VulkanSwapchain> swapchain_;
     VulkanSwapchainBuilder swapchainBuilder_;
+    BatchSubmission& batchSubmission_;
     std::shared_ptr<VulkanCommandPool> commandPool_;
     std::vector<VkCommandBuffer> renderCommandBuffer_{};
     VkSampleCountFlagBits samples_;
@@ -77,7 +80,6 @@ private:
     std::array<VkSemaphore, MAX_IN_FLIGHT_FRAMES> renderingFinishedSemaphore_;
     std::array<VkFence, MAX_IN_FLIGHT_FRAMES> inFlightFrame_;
     int currentFrame_{};
-    VkSubmitInfo renderSubmitInfo_;
     VkPresentInfoKHR presentInfo_;
 
     VkRenderingInfo renderingInfo_{ VK_STRUCTURE_TYPE_RENDERING_INFO };

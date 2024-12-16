@@ -5,9 +5,10 @@
 
 #include <utility>
 
-Scene::Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState)
+Scene::Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState, BatchSubmission& batchSubmission)
 : device_(std::move(device))
 , appState_(appState)
+, batchSubmission_(batchSubmission)
 , inheritanceInfo_{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
     .pNext = &renderingInfo_
@@ -71,9 +72,21 @@ void Scene::update() {}
 
 void Scene::invalidate() {}
 
+void Scene::batch(VkCommandBuffer commandBuffer) {
+    batchSubmission_.enqueue(commandBuffer);
+}
 
-TestScene::TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState)
-: Scene(std::move(device_), appState) {}
+void Scene::addWait(VkSemaphore semaphore, VkPipelineStageFlags flags) {
+    batchSubmission_.enqueueWait(semaphore, flags);
+}
+
+void Scene::signal(VkSemaphore semaphore) {
+    batchSubmission_.enqueueSignal(semaphore);
+}
+
+
+TestScene::TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState, BatchSubmission& batchSubmission)
+: Scene(std::move(device_), appState, batchSubmission) {}
 
 void TestScene::update() {
     static int period = 5;

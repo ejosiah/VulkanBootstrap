@@ -9,7 +9,9 @@
 
 class CubeScene : public Scene {
 public:
-    CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appState);
+    CubeScene(std::shared_ptr<VulkanDevice> device,
+              const AppState& appState,
+              BatchSubmission& batchSubmission);
 
     ~CubeScene() override = default;
 

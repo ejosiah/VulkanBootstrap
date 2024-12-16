@@ -5,8 +5,8 @@
 #include "io/IO.hpp"
 
 int main() {
-    BootStrap::application([](auto device, const auto& appState){
-        return std::make_shared<CubeScene>(device, appState);
+    BootStrap::application([](auto device, const auto& appState, auto batchSubmission){
+        return std::make_shared<CubeScene>(device, appState, batchSubmission);
     }).run();
     return 0;
 }

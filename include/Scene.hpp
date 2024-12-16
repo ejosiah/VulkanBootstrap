@@ -4,12 +4,15 @@
 #include "event/Events.hpp"
 #include "VulkanDevice.hpp"
 #include "AppState.hpp"
+#include "BatchSubmission.hpp"
 
 #include <span>
 
 class Scene {
 public:
-    Scene(std::shared_ptr<VulkanDevice> device, const AppState& appState);
+    Scene(std::shared_ptr<VulkanDevice> device,
+          const AppState& appState,
+          BatchSubmission& batchSubmission);
 
     virtual ~Scene() = default;
 
@@ -29,6 +32,12 @@ public:
 
     void invalidate0();
 
+    void batch(VkCommandBuffer commandBuffer);
+
+    void addWait(VkSemaphore semaphore, VkPipelineStageFlags flags);
+
+    void signal(VkSemaphore semaphore);
+
     void refresh();
 
     virtual void invalidate();
@@ -39,6 +48,7 @@ protected:
 protected:
     std::shared_ptr<VulkanDevice> device_;
     const AppState& appState_;
+    BatchSubmission& batchSubmission_;
     std::shared_ptr<VulkanCommandPool> commandPool_;
     VkCommandBufferInheritanceInfo inheritanceInfo_;
     VkCommandBufferInheritanceRenderingInfo renderingInfo_{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
@@ -50,7 +60,7 @@ private:
 
 class TestScene : public Scene {
 public:
-    TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState);
+    TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState, BatchSubmission& batchSubmission);
 
     void update() final;
 

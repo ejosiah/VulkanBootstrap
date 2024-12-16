@@ -80,8 +80,8 @@ inline glm::mat4 vulkan_perspective(float fovy, float aspect, float zNear, float
     return Result;
 }
 
-CubeScene::CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appState)
-        : Scene(std::move(device), appState) {}
+CubeScene::CubeScene(std::shared_ptr<VulkanDevice> device, const AppState& appState, BatchSubmission& batchSubmission)
+        : Scene(std::move(device), appState, batchSubmission) {}
 
 void CubeScene::init() {
     createTexture();
