@@ -84,6 +84,8 @@ void Scene::signal(VkSemaphore semaphore) {
     batchSubmission_.enqueueSignal(semaphore);
 }
 
+void Scene::init() {}
+
 
 TestScene::TestScene(std::shared_ptr<VulkanDevice> device_, const AppState& appState, BatchSubmission& batchSubmission)
 : Scene(std::move(device_), appState, batchSubmission) {}

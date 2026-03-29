@@ -20,7 +20,7 @@ public:
 
     void initCommandBuffer();
 
-    virtual void init() = 0;
+    virtual void init();
 
     virtual std::span<VkCommandBuffer> record();
 
@@ -48,13 +48,13 @@ protected:
 protected:
     std::shared_ptr<VulkanDevice> device_;
     const AppState& appState_;
-    BatchSubmission& batchSubmission_;
     std::shared_ptr<VulkanCommandPool> commandPool_;
     VkCommandBufferInheritanceInfo inheritanceInfo_;
     VkCommandBufferInheritanceRenderingInfo renderingInfo_{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
     bool dynamicScene_{};
 
 private:
+    BatchSubmission& batchSubmission_;
     std::vector<VkCommandBuffer> commandBuffer_;
 };
 

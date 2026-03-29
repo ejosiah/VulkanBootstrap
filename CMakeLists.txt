@@ -12,6 +12,7 @@ find_package(glfw3)
 find_package(glm)
 find_package(stb)
 find_package(cpptrace)
+find_package(imgui)
 
 file(GLOB_RECURSE HPP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/include/*.hpp ${CMAKE_CURRENT_LIST_DIR}/external/include/*.*)
 file(GLOB_RECURSE CPP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
@@ -35,4 +36,5 @@ target_link_libraries(VulkanBootstrap
         glfw
         glm::glm
         stb::stb
-        cpptrace::cpptrace)
+        cpptrace::cpptrace
+        imgui::imgui)

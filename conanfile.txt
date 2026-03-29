@@ -5,6 +5,7 @@ glfw/3.4
 glm/1.0.1
 cpptrace/0.7.3
 stb/cci.20240531
+imgui/1.91.5
 
 [generators]
 CMakeDeps
