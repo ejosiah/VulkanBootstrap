@@ -9,7 +9,7 @@
 #include "util/Bits.hpp"
 #include "SetVulkanObjectName.hpp"
 #include <utility>
-#include <format>
+#include <fmt/format.h>
 #include <ranges>
 
 VulkanDevice::VulkanDevice(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
@@ -45,18 +45,18 @@ std::string VulkanDevice::toString() {
     VkPhysicalDeviceProperties props;
     vkGetPhysicalDeviceProperties(physicalDevice_, &props);
 
-    auto apiVersion = std::format("{}.{}.{}",
+    auto apiVersion = fmt::format("{}.{}.{}",
                                   VK_API_VERSION_MAJOR(props.apiVersion),
                                   VK_API_VERSION_MINOR(props.apiVersion),
                                   VK_API_VERSION_PATCH(props.apiVersion));
 
-    auto driverVersion = std::format("{}.{}.{}",
+    auto driverVersion = fmt::format("{}.{}.{}",
                                      VK_API_VERSION_MAJOR(props.driverVersion),
                                      VK_API_VERSION_MINOR(props.driverVersion),
                                      VK_API_VERSION_PATCH(props.driverVersion));
 
 
-    return std::format(
+    return fmt::format(
             "device Info:\n\tname:{}\n\tAPI version:{}\n\tDriver version: {}\n\tType: {}"
             , props.deviceName, apiVersion, driverVersion, VulkanDevice::toString(props.deviceType));
 }
@@ -133,7 +133,7 @@ VkDevice VulkanDevice::handle() const {
 std::shared_ptr<VulkanCommandPool>
 VulkanDevice::createCommandPool(VkQueueFlagBits queueFlag, VkCommandPoolCreateFlags flags) {
     if(!queues_.contains(queueFlag)){
-        throw std::runtime_error{ std::format("No queue defined for queue type, TODO queue flag to string") };
+        throw std::runtime_error{ fmt::format("No queue defined for queue type, TODO queue flag to string") };
     }
 
     return VulkanCommandPool::make_shared(device_, queues_.at(queueFlag), queueFamilyIndex_.at(queueFlag), flags);

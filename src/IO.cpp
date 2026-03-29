@@ -3,17 +3,17 @@
 #include <stb_image.h>
 
 #include <cpptrace/cpptrace.hpp>
-#include <format>
+#include <fmt/format.h>
 #include <fstream>
 #include <cstdio>
 
 io::ByteString io::loadFile(const std::filesystem::path &path) {
     if(!std::filesystem::exists(path)) {
-        throw cpptrace::runtime_error{ std::format("{} does not exists", path.string()) };
+        throw cpptrace::runtime_error{ fmt::format("{} does not exists", path.string()) };
     }
 
     std::ifstream fin(path.string().data(), std::ios::binary | std::ios::ate);
-    if(!fin.good()) throw cpptrace::runtime_error{ std::format("Failed to open file: {}", path.string()) };
+    if(!fin.good()) throw cpptrace::runtime_error{ fmt::format("Failed to open file: {}", path.string()) };
 
     auto size = fin.tellg();
     fin.seekg(0);
@@ -29,7 +29,7 @@ io::Image io::loadImage(const std::filesystem::path &path, int numChannels, bool
     image.channels = numChannels;
 
     if(!pixels) {
-        throw cpptrace::runtime_error{ std::format("unable to load image from path: {}", path.string()) };
+        throw cpptrace::runtime_error{ fmt::format("unable to load image from path: {}", path.string()) };
     }
 
     image.size = image.width * image.height * numChannels;

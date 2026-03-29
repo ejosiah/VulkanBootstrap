@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(volk REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(fmt)
 find_package(glfw3)
 find_package(glm)
 find_package(stb)
@@ -31,6 +32,7 @@ add_executable(VulkanBootstrap ${HPP_SOURCES} ${CPP_SOURCES})
 target_link_libraries(VulkanBootstrap
         spirv_reflect
         tlsf
+        fmt::fmt
         spdlog::spdlog
         volk::volk
         glfw

@@ -1,6 +1,6 @@
 #include "Converters.hpp"
 #include <cpptrace/cpptrace.hpp>
-#include <format>
+#include <fmt/format.h>
 #include <map>
 
 static std::map<VkFormat, std::string> formats {
@@ -341,7 +341,7 @@ int format::toNumChannels(VkFormat format) {
         case VK_FORMAT_R32G32B32A32_SFLOAT:
             return 4;
         default:
-            throw cpptrace::runtime_error{std::format("format: {}, not implemented", formats.at(format))};
+            throw cpptrace::runtime_error{fmt::format("format: {}, not implemented", formats.at(format))};
     }
 }
 
