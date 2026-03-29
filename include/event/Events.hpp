@@ -3,6 +3,8 @@
 #include <variant>
 #include <queue>
 
+#include <cinttypes>
+
 struct InvalidateEvent{};
 struct FrameBufferResizeEvent{
     uint32_t width, height;

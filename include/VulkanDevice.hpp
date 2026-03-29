@@ -5,6 +5,7 @@
 #include "VulkanBuffer.hpp"
 #include "VulkanPipeline.hpp"
 #include "SetVulkanObjectName.hpp"
+#include "Texture.hpp"
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -19,6 +20,7 @@
 #include <string_view>
 
 class VulkanDeviceBuilder;
+class TextureBuilder;
 
 enum VkQueueFlagBitsExtras {
     VK_QUEUE_PRESENT_BIT = VK_QUEUE_FLAG_BITS_MAX_ENUM >> 1

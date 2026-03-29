@@ -1,6 +1,7 @@
 #include "VulkanShaderModule.hpp"
 #include "io/IO.hpp"
 
+#include <cstring>
 #include <utility>
 #include <stdexcept>
 

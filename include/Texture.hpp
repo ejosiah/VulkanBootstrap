@@ -9,6 +9,10 @@
 #include <cpptrace/cpptrace.hpp>
 
 struct TextureId { ResourceHandle id; };
+class TextureImageCreator;
+class TextureImageViewCreator;
+class TextureSamplerCreator;
+class VulkanDevice;
 
 struct Texture {
     static constexpr uint32 INVALID = ~0u;

@@ -145,8 +145,13 @@ release
 cmake-build-debug
 cmake-build-release
 build
+build-debug
+buld-release
 .idea
 
 doc
 
 **/.DS_store
+CMakeUserPresets.json
+*conanbuild*
+*conanrun*

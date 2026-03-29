@@ -2,6 +2,7 @@
 #include "io/IO.hpp"
 #include "Converters.hpp"
 
+#include <cstring>
 #include <ranges>
 #include <functional>
 
