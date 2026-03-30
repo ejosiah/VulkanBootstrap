@@ -143,8 +143,8 @@ void CubeScene::createBuffers() {
 }
 
 void CubeScene::createPipeline() {
-    auto vertexShader =  device_->shader().code("../../resources/shaders/cube.vert.spv").make_shared();
-    auto fragmentShader =  device_->shader().code("../../resources/shaders/cube.frag.spv").make_shared();
+    auto vertexShader =  device_->shader().code("resources/shaders/cube.vert.spv").make_shared();
+    auto fragmentShader =  device_->shader().code("resources/shaders/cube.frag.spv").make_shared();
 
     VkPipelineShaderStageCreateInfo vertexStageCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
     vertexStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -318,7 +318,7 @@ void CubeScene::record(VkCommandBuffer commandBuffer) {
 void CubeScene::createTexture() {
     texture_ =
         device_->texture()
-            .addPath("../../resources/images/vulkan.png")
+            .addPath("resources/images/vulkan.png")
             .image()
                 .format(VK_FORMAT_R8G8B8A8_SRGB)
                 .usage(VK_IMAGE_USAGE_SAMPLED_BIT)
