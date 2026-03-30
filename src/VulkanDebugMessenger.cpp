@@ -52,6 +52,9 @@ VkDebugUtilsMessengerCreateInfoEXT VulkanDebugMessenger::debugCreateInfo() {
 }
 
 std::shared_ptr <VulkanDebugMessenger> VulkanDebugMessenger::createDebugMessenger(VkInstance instance) {
+#ifdef NDEBUG
+    return {};
+#endif
     auto createInfo = debugCreateInfo();
 
     VkDebugUtilsMessengerEXT messenger{};
