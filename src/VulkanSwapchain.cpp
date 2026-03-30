@@ -90,6 +90,7 @@ VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPresentMode(VkPresentModeKHR 
 
 std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     if(surface_ == VK_NULL_HANDLE) {
+        spdlog::error("cannot create swapchain without a presentation surface");
         throw std::runtime_error{"cannot create swapchain without a presentation surface"};
     }
 
@@ -98,10 +99,12 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     supportedModes_ = device_->getSurfacePresentationsModes(surface_);
 
     if(supportedFormats_.empty()) {
+        spdlog::error("no swapchain surface formats available");
         throw std::runtime_error{"no swapchain surface formats available"};
     }
 
     if(supportedModes_.empty()) {
+        spdlog::error("no swapchain present modes available");
         throw std::runtime_error{"no swapchain present modes available"};
     }
 
@@ -128,6 +131,7 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     auto result = vkCreateSwapchainKHR(device_->handle(), &createInfo, nullptr, &swapchain_);
 
     if(result != VK_SUCCESS){
+        spdlog::error("unable to create Vulkan swapchain, vk result={}", static_cast<int>(result));
         throw std::runtime_error("unable to create Vulkan swapchain");
     }
     oldSwapchain_ = swapchain_;

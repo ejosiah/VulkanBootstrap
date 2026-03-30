@@ -107,6 +107,7 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
 
     auto result = vkCreateInstance(&createInfo, VK_NULL_HANDLE, &instance);
     if(result != VK_SUCCESS){
+        spdlog::error("unable to create Vulkan instance, vk result={}", static_cast<int>(result));
         throw std::runtime_error("unable to create Vulkan instance");
     }
 

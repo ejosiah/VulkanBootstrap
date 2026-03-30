@@ -29,6 +29,7 @@ std::vector<const char *> WindowInterface::extensions() {
     uint32 count;
     auto exts = glfwGetRequiredInstanceExtensions(&count);
     if(exts == nullptr || count == 0) {
+        spdlog::error("GLFW did not provide the required Vulkan instance extensions");
         throw std::runtime_error("GLFW did not provide the required Vulkan instance extensions");
     }
 
@@ -43,6 +44,7 @@ std::vector<const char *> WindowInterface::extensions() {
 std::shared_ptr<Window> WindowInterface::make_shared(int width, int height, std::string title) {
     auto window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if(window == nullptr) {
+        spdlog::error("unable to create GLFW window");
         throw std::runtime_error("unable to create GLFW window");
     }
     glfwSetWindowCloseCallback(window, [](auto window){ glfwSetWindowShouldClose(window, GLFW_TRUE); });
@@ -78,6 +80,7 @@ VkSurfaceKHR Window::createSurface(VkInstance instance) {
     VkSurfaceKHR surface{};
     auto result = glfwCreateWindowSurface(instance, window_, VK_NULL_HANDLE, &surface);
     if(result != VK_SUCCESS) {
+        spdlog::error("unable to create Vulkan surface from GLFW window, vk result={}", static_cast<int>(result));
         throw std::runtime_error("unable to create Vulkan surface from GLFW window");
     }
     return surface;

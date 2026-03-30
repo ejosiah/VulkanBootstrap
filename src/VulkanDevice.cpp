@@ -8,6 +8,7 @@
 #include "vk_mem_alloc.h"
 #include "util/Bits.hpp"
 #include "SetVulkanObjectName.hpp"
+#include <spdlog/spdlog.h>
 #include <utility>
 #include <fmt/format.h>
 #include <ranges>
@@ -247,10 +248,12 @@ VulkanDeviceBuilder &VulkanDeviceBuilder::addExtensions(std::vector<const char *
 VkPhysicalDevice VulkanDeviceBuilder::pickDevice(VulkanDeviceBuilder::DevicePicker &&pick) {
     auto physicalDevices = v_enumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, instance_);
     if(physicalDevices.empty()) {
+        spdlog::error("no Vulkan physical devices found");
         throw std::runtime_error{"no Vulkan physical devices found"};
     }
     physicalDevice_ = pick(physicalDevices);
     if(physicalDevice_ == VK_NULL_HANDLE) {
+        spdlog::error("device picker did not select a physical device");
         throw std::runtime_error{"device picker did not select a physical device"};
     }
     return physicalDevice_;
@@ -263,6 +266,7 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
     auto queueFamilyIndex = getQueueFamilyIndexes();
     auto device = createDevice(queueFamilyIndex);
     if(device == VK_NULL_HANDLE) {
+        spdlog::error("unable to create Vulkan logical device");
         throw std::runtime_error{"unable to create Vulkan logical device"};
     }
     auto allocator = createAllocator(device);
@@ -337,10 +341,12 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
     }
 
     if((queueTypes_ & VK_QUEUE_GRAPHICS_BIT) != 0 && !queueFamilyIndex.contains(VK_QUEUE_GRAPHICS_BIT)) {
+        spdlog::error("no graphics queue family available");
         throw std::runtime_error{"no graphics queue family available"};
     }
 
     if(surface_ != VK_NULL_HANDLE && !queueFamilyIndex.contains(VK_QUEUE_PRESENT_BIT)) {
+        spdlog::error("no present queue family available for the selected surface");
         throw std::runtime_error{"no present queue family available for the selected surface"};
     }
 
@@ -405,6 +411,7 @@ VmaAllocator VulkanDeviceBuilder::createAllocator(VkDevice device) {
     VmaAllocator allocator;
     auto result = vmaCreateAllocator(&allocatorCreateInfo, &allocator);
     if(result != VK_SUCCESS) {
+        spdlog::error("unable to create Vulkan memory allocator, vk result={}", static_cast<int>(result));
         throw std::runtime_error{"unable to create Vulkan memory allocator"};
     }
     return allocator;
