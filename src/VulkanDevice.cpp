@@ -190,6 +190,12 @@ VkPhysicalDeviceProperties VulkanDevice::getProperties() const {
     return properties;
 }
 
+VkFormatProperties VulkanDevice::getFormatProperties(VkFormat format) const {
+    VkFormatProperties properties;
+    vkGetPhysicalDeviceFormatProperties(physicalDevice_, format, &properties);
+    return properties;
+}
+
 VulkanCommandPool* VulkanDevice::graphicsCommandPool() {
     return graphicsCommandPool_.get();
 }

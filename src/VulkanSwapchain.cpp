@@ -1,6 +1,7 @@
 #include "Types.hpp"
 #include "VulkanSwapchain.hpp"
 #include <algorithm>
+#include <limits>
 #include <spdlog/spdlog.h>
 #include <utility>
 
@@ -96,7 +97,7 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     const auto format = getFormat();
     const auto presentMode = getPresentMode();
     const auto extent = getExtent();
-    auto imageCount = std::min(minImageCount_, capabilities_.maxImageCount);
+    auto imageCount = getMinImageCount();
 
     createInfo.surface = surface_;
     createInfo.minImageCount = imageCount;
@@ -105,8 +106,8 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    createInfo.preTransform = preTransform_;
-    createInfo.compositeAlpha = compositeAlpha_;
+    createInfo.preTransform = getPreTransform();
+    createInfo.compositeAlpha = getCompositeAlpha();
     createInfo.presentMode = presentMode;
     createInfo.clipped = true;
     createInfo.oldSwapchain = oldSwapchain_;
@@ -148,7 +149,49 @@ VkPresentModeKHR VulkanSwapchainBuilder::getPresentMode() const {
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
+uint32 VulkanSwapchainBuilder::getMinImageCount() const {
+    auto imageCount = std::max(minImageCount_, capabilities_.minImageCount);
+    if(capabilities_.maxImageCount == 0) {
+        return imageCount;
+    }
+    return std::min(imageCount, capabilities_.maxImageCount);
+}
+
 VkExtent2D VulkanSwapchainBuilder::getExtent() const {
-    return { std::clamp(extent_.width, capabilities_.minImageExtent.width, capabilities_.maxImageExtent.width),
-        std::clamp(extent_.height, capabilities_.minImageExtent.height, capabilities_.maxImageExtent.height) };
+    if(capabilities_.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities_.currentExtent;
+    }
+
+    return {
+        std::clamp(extent_.width, capabilities_.minImageExtent.width, capabilities_.maxImageExtent.width),
+        std::clamp(extent_.height, capabilities_.minImageExtent.height, capabilities_.maxImageExtent.height)
+    };
+}
+
+VkSurfaceTransformFlagBitsKHR VulkanSwapchainBuilder::getPreTransform() const {
+    if((capabilities_.supportedTransforms & preTransform_) != 0) {
+        return preTransform_;
+    }
+    return capabilities_.currentTransform;
+}
+
+VkCompositeAlphaFlagBitsKHR VulkanSwapchainBuilder::getCompositeAlpha() const {
+    if((capabilities_.supportedCompositeAlpha & compositeAlpha_) != 0) {
+        return compositeAlpha_;
+    }
+
+    constexpr VkCompositeAlphaFlagBitsKHR fallbacks[] = {
+        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+        VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+        VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR
+    };
+
+    for(auto candidate : fallbacks) {
+        if((capabilities_.supportedCompositeAlpha & candidate) != 0) {
+            return candidate;
+        }
+    }
+
+    return compositeAlpha_;
 }

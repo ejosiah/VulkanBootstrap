@@ -60,7 +60,13 @@ private:
 
     [[nodiscard]] VkPresentModeKHR  getPresentMode() const;
 
+    [[nodiscard]] uint32_t getMinImageCount() const;
+
     [[nodiscard]] VkExtent2D  getExtent() const;
+
+    [[nodiscard]] VkSurfaceTransformFlagBitsKHR getPreTransform() const;
+
+    [[nodiscard]] VkCompositeAlphaFlagBitsKHR getCompositeAlpha() const;
 
 private:
     std::shared_ptr<VulkanDevice> device_;
