@@ -246,7 +246,13 @@ VulkanDeviceBuilder &VulkanDeviceBuilder::addExtensions(std::vector<const char *
 
 VkPhysicalDevice VulkanDeviceBuilder::pickDevice(VulkanDeviceBuilder::DevicePicker &&pick) {
     auto physicalDevices = v_enumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, instance_);
+    if(physicalDevices.empty()) {
+        throw std::runtime_error{"no Vulkan physical devices found"};
+    }
     physicalDevice_ = pick(physicalDevices);
+    if(physicalDevice_ == VK_NULL_HANDLE) {
+        throw std::runtime_error{"device picker did not select a physical device"};
+    }
     return physicalDevice_;
 }
 
@@ -256,6 +262,9 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::make_shared() {
     }
     auto queueFamilyIndex = getQueueFamilyIndexes();
     auto device = createDevice(queueFamilyIndex);
+    if(device == VK_NULL_HANDLE) {
+        throw std::runtime_error{"unable to create Vulkan logical device"};
+    }
     auto allocator = createAllocator(device);
     std::map<VkQueueFlags, VkQueue> queues;
     for(auto [flag, index] : queueFamilyIndex){
@@ -327,6 +336,14 @@ std::map<VkQueueFlags, uint32> VulkanDeviceBuilder::getQueueFamilyIndexes() {
         queryUniqueQueue(props[i], VK_QUEUE_TRANSFER_BIT, i);
     }
 
+    if((queueTypes_ & VK_QUEUE_GRAPHICS_BIT) != 0 && !queueFamilyIndex.contains(VK_QUEUE_GRAPHICS_BIT)) {
+        throw std::runtime_error{"no graphics queue family available"};
+    }
+
+    if(surface_ != VK_NULL_HANDLE && !queueFamilyIndex.contains(VK_QUEUE_PRESENT_BIT)) {
+        throw std::runtime_error{"no present queue family available for the selected surface"};
+    }
+
     return queueFamilyIndex;
 }
 
@@ -386,6 +403,9 @@ VmaAllocator VulkanDeviceBuilder::createAllocator(VkDevice device) {
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
     VmaAllocator allocator;
-    vmaCreateAllocator(&allocatorCreateInfo, &allocator);
+    auto result = vmaCreateAllocator(&allocatorCreateInfo, &allocator);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error{"unable to create Vulkan memory allocator"};
+    }
     return allocator;
 }

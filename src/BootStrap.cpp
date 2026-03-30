@@ -1,6 +1,7 @@
 #include "BootStrap.hpp"
 
 #include "data_structure/ResourcePool.hpp"
+#include <stdexcept>
 
 VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
     WindowInterface::connect();
@@ -19,6 +20,10 @@ VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
 //            .addLayer("VK_LAYER_LUNARG_api_dump")
                     .make_shared();
 
+    if(!instance) {
+        throw std::runtime_error("failed to initialize Vulkan instance");
+    }
+
     volkLoadInstance(instance->handle());
 
     auto debugMessenger = VulkanDebugMessenger::createDebugMessenger(instance->handle());
@@ -31,12 +36,20 @@ VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
             .addSurface(instance->surface())
         .make_shared();
 
+    if(!device) {
+        throw std::runtime_error("failed to initialize Vulkan device");
+    }
+
     auto scBuilder = VulkanSwapchain::builder(device, instance->surface());
     auto swapchain =
         scBuilder
             .setImageFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             .setPresentMode(VK_PRESENT_MODE_IMMEDIATE_KHR)
         .make_unique();
+
+    if(!swapchain) {
+        throw std::runtime_error("failed to create swapchain");
+    }
 
     auto& batchSubmission = BatchSubmission::instance(device->getGraphicsQueue());
     std::shared_ptr<Scene> scene = sceneFactory(device, AppState::instance(), batchSubmission);

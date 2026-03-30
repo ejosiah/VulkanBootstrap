@@ -4,6 +4,7 @@
 #include "WindowInterface.hpp"
 #include <spdlog/spdlog.h>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 
 
@@ -105,10 +106,8 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     VkInstance instance{};
 
     auto result = vkCreateInstance(&createInfo, VK_NULL_HANDLE, &instance);
-
-
     if(result != VK_SUCCESS){
-        return {};
+        throw std::runtime_error("unable to create Vulkan instance");
     }
 
     auto appInstance = std::make_shared<VulkanInstance>(createInfo, instance);

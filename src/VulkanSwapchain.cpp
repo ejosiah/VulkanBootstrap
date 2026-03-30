@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <limits>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <utility>
 
 VulkanSwapchain::VulkanSwapchain(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage> images, VkExtent2D extent, VkFormat format)
@@ -88,9 +89,21 @@ VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPresentMode(VkPresentModeKHR 
 }
 
 std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
+    if(surface_ == VK_NULL_HANDLE) {
+        throw std::runtime_error{"cannot create swapchain without a presentation surface"};
+    }
+
     capabilities_ = device_->getSurfaceCapabilities(surface_);
     supportedFormats_ = device_->getSurfaceFormat(surface_);
     supportedModes_ = device_->getSurfacePresentationsModes(surface_);
+
+    if(supportedFormats_.empty()) {
+        throw std::runtime_error{"no swapchain surface formats available"};
+    }
+
+    if(supportedModes_.empty()) {
+        throw std::runtime_error{"no swapchain present modes available"};
+    }
 
     VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 
@@ -115,7 +128,7 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     auto result = vkCreateSwapchainKHR(device_->handle(), &createInfo, nullptr, &swapchain_);
 
     if(result != VK_SUCCESS){
-        return {};
+        throw std::runtime_error("unable to create Vulkan swapchain");
     }
     oldSwapchain_ = swapchain_;
 

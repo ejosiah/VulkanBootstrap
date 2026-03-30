@@ -3,6 +3,7 @@
 #include "event/Events.hpp"
 #include <spdlog/spdlog.h>
 #include <cstdlib>
+#include <stdexcept>
 
 std::vector<std::shared_ptr<Window>> WindowInterface::windows{};
 
@@ -27,6 +28,9 @@ void WindowInterface::disconnect() {
 std::vector<const char *> WindowInterface::extensions() {
     uint32 count;
     auto exts = glfwGetRequiredInstanceExtensions(&count);
+    if(exts == nullptr || count == 0) {
+        throw std::runtime_error("GLFW did not provide the required Vulkan instance extensions");
+    }
 
     std::vector<const char*> vec;
 
@@ -38,6 +42,9 @@ std::vector<const char *> WindowInterface::extensions() {
 
 std::shared_ptr<Window> WindowInterface::make_shared(int width, int height, std::string title) {
     auto window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    if(window == nullptr) {
+        throw std::runtime_error("unable to create GLFW window");
+    }
     glfwSetWindowCloseCallback(window, [](auto window){ glfwSetWindowShouldClose(window, GLFW_TRUE); });
     glfwSetFramebufferSizeCallback(window, [](auto window, int width, int height){
         EventBus::Publish(FrameBufferResizeEvent(width, height));
@@ -69,7 +76,10 @@ bool Window::isActive() {
 
 VkSurfaceKHR Window::createSurface(VkInstance instance) {
     VkSurfaceKHR surface{};
-    glfwCreateWindowSurface(instance, window_, VK_NULL_HANDLE, &surface);
+    auto result = glfwCreateWindowSurface(instance, window_, VK_NULL_HANDLE, &surface);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("unable to create Vulkan surface from GLFW window");
+    }
     return surface;
 }
 
