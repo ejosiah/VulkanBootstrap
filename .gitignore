@@ -144,6 +144,7 @@ release
 
 cmake-build-debug
 cmake-build-release
+build-codex
 build
 build-debug
 buld-release
