@@ -59,6 +59,8 @@ private:
 
     void initFrameBufferPrimitives();
 
+    [[nodiscard]] VkFormat selectDepthFormat() const;
+
     void recordScene(VkCommandBuffer sceneCommandBuffer);
 
     static VkSampleCountFlagBits ensureSampleCount(VkSampleCountFlagBits samples, const std::shared_ptr<VulkanDevice>& device);

@@ -15,10 +15,17 @@ find_package(stb)
 find_package(cpptrace)
 find_package(imgui)
 
-find_program(GLSLC_EXECUTABLE
-        NAMES glslc
+find_program(SHADER_COMPILER_EXECUTABLE
+        NAMES glslc glslangValidator
         HINTS "$ENV{VULKAN_SDK}/Bin" "$ENV{VULKAN_SDK}/bin"
         REQUIRED)
+
+get_filename_component(SHADER_COMPILER_NAME ${SHADER_COMPILER_EXECUTABLE} NAME_WE)
+if(SHADER_COMPILER_NAME STREQUAL "glslangValidator")
+    set(SHADER_COMPILER_ARGS -V)
+else()
+    set(SHADER_COMPILER_ARGS)
+endif()
 
 file(GLOB_RECURSE HPP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/include/*.hpp ${CMAKE_CURRENT_LIST_DIR}/external/include/*.*)
 file(GLOB_RECURSE CPP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
@@ -46,7 +53,7 @@ foreach(SHADER_SOURCE IN LISTS SHADER_SOURCES)
     add_custom_command(
             OUTPUT ${SHADER_OUTPUT}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/resources/shaders
-            COMMAND ${GLSLC_EXECUTABLE} ${SHADER_SOURCE} -o ${SHADER_OUTPUT}
+            COMMAND ${SHADER_COMPILER_EXECUTABLE} ${SHADER_COMPILER_ARGS} ${SHADER_SOURCE} -o ${SHADER_OUTPUT}
             DEPENDS ${SHADER_SOURCE}
             COMMENT "Compiling shader ${SHADER_NAME}"
             VERBATIM)

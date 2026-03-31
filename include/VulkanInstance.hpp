@@ -12,7 +12,11 @@ class VulkanInstanceBuilder;
 
 class VulkanInstance{
 public:
-    VulkanInstance(const VkInstanceCreateInfo& createInfo, VkInstance instance);
+    VulkanInstance(const VkInstanceCreateInfo& createInfo,
+                   VkApplicationInfo appInfo,
+                   std::vector<const char*> enabledLayers,
+                   std::vector<const char*> enabledExtensions,
+                   VkInstance instance);
 
     ~VulkanInstance();
 
@@ -26,8 +30,10 @@ public:
     VkInstance handle() const;
 
 private:
-    VkApplicationInfo appInfo_;
+    VkApplicationInfo appInfo_{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
     VkInstanceCreateInfo createInfo_{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+    std::vector<const char*> enabledLayers_;
+    std::vector<const char*> enabledExtensions_;
     VkInstance instance_{};
     VkSurfaceKHR surface_{};
 };

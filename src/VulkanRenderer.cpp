@@ -10,6 +10,25 @@
 #include <stdexcept>
 #include <utility>
 
+namespace {
+VkFormat pickSupportedDepthFormat(const VulkanDevice& device) {
+    constexpr VkFormat candidates[] = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+
+    for(auto candidate : candidates) {
+        const auto properties = device.getFormatProperties(candidate);
+        if((properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) != 0) {
+            return candidate;
+        }
+    }
+
+    throw std::runtime_error{"unable to find a supported depth format"};
+}
+}
+
 VulkanRenderer::VulkanRenderer(
         std::shared_ptr<Window> window,
         std::shared_ptr<VulkanInstance> instance,
@@ -109,6 +128,8 @@ void VulkanRenderer::destroySynchronizationPrimitives() {
 }
 
 void VulkanRenderer::initFrameBufferPrimitives() {
+    const auto depthFormat = selectDepthFormat();
+
     if(samples_ != VK_SAMPLE_COUNT_1_BIT){
         colorBuffer_.msaaImages.clear();
         colorBuffer_.msaaImages.resize(swapchain_->imageCount());
@@ -181,7 +202,7 @@ void VulkanRenderer::initFrameBufferPrimitives() {
     depthBuffer_.image =
         device_->image()
             .imageType(VK_IMAGE_TYPE_2D)
-            .format(VK_FORMAT_D32_SFLOAT) // // TODO query this from device using vkGetPhysicalDeviceFormatProperties
+            .format(depthFormat)
             .width(swapchain_->width())
             .height(swapchain_->height())
             .usage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
@@ -193,7 +214,7 @@ void VulkanRenderer::initFrameBufferPrimitives() {
         depthBuffer_.imageView[i] =
             device_->imageView()
                     .image(*depthBuffer_.image)
-                    .format(VK_FORMAT_D32_SFLOAT)
+                    .format(depthFormat)
                     .aspectMask(VK_IMAGE_ASPECT_DEPTH_BIT)
                 .make_unique();
     }
@@ -297,7 +318,7 @@ VkFormat VulkanRenderer::format() const {
 }
 
 VkFormat VulkanRenderer::depthFormat() const {
-    return VK_FORMAT_D32_SFLOAT;
+    return selectDepthFormat();
 }
 
 uint32 VulkanRenderer::framesInFlight() const {
@@ -328,4 +349,8 @@ uint32 VulkanRenderer::currentFrame() const {
 
 bool VulkanRenderer::msaaEnabled() const {
     return !colorBuffer_.msaaImages.empty();
+}
+
+VkFormat VulkanRenderer::selectDepthFormat() const {
+    return pickSupportedDepthFormat(*device_);
 }

@@ -71,6 +71,8 @@ public:
 
     [[nodiscard]] VkPhysicalDeviceProperties getProperties() const;
 
+    [[nodiscard]] VkFormatProperties getFormatProperties(VkFormat format) const;
+
     std::shared_ptr<VulkanCommandPool> createCommandPool(VkQueueFlagBits queueFlag
                                            , VkCommandPoolCreateFlags flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 

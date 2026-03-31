@@ -1,7 +1,9 @@
 #include "Types.hpp"
 #include "VulkanSwapchain.hpp"
 #include <algorithm>
+#include <limits>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <utility>
 
 VulkanSwapchain::VulkanSwapchain(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage> images, VkExtent2D extent, VkFormat format)
@@ -87,16 +89,31 @@ VulkanSwapchainBuilder &VulkanSwapchainBuilder::setPresentMode(VkPresentModeKHR 
 }
 
 std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
+    if(surface_ == VK_NULL_HANDLE) {
+        spdlog::error("cannot create swapchain without a presentation surface");
+        throw std::runtime_error{"cannot create swapchain without a presentation surface"};
+    }
+
     capabilities_ = device_->getSurfaceCapabilities(surface_);
     supportedFormats_ = device_->getSurfaceFormat(surface_);
     supportedModes_ = device_->getSurfacePresentationsModes(surface_);
+
+    if(supportedFormats_.empty()) {
+        spdlog::error("no swapchain surface formats available");
+        throw std::runtime_error{"no swapchain surface formats available"};
+    }
+
+    if(supportedModes_.empty()) {
+        spdlog::error("no swapchain present modes available");
+        throw std::runtime_error{"no swapchain present modes available"};
+    }
 
     VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 
     const auto format = getFormat();
     const auto presentMode = getPresentMode();
     const auto extent = getExtent();
-    auto imageCount = std::min(minImageCount_, capabilities_.maxImageCount);
+    auto imageCount = getMinImageCount();
 
     createInfo.surface = surface_;
     createInfo.minImageCount = imageCount;
@@ -105,8 +122,8 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    createInfo.preTransform = preTransform_;
-    createInfo.compositeAlpha = compositeAlpha_;
+    createInfo.preTransform = getPreTransform();
+    createInfo.compositeAlpha = getCompositeAlpha();
     createInfo.presentMode = presentMode;
     createInfo.clipped = true;
     createInfo.oldSwapchain = oldSwapchain_;
@@ -114,7 +131,8 @@ std::unique_ptr<VulkanSwapchain> VulkanSwapchainBuilder::make_unique() {
     auto result = vkCreateSwapchainKHR(device_->handle(), &createInfo, nullptr, &swapchain_);
 
     if(result != VK_SUCCESS){
-        return {};
+        spdlog::error("unable to create Vulkan swapchain, vk result={}", static_cast<int>(result));
+        throw std::runtime_error("unable to create Vulkan swapchain");
     }
     oldSwapchain_ = swapchain_;
 
@@ -148,7 +166,49 @@ VkPresentModeKHR VulkanSwapchainBuilder::getPresentMode() const {
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
+uint32 VulkanSwapchainBuilder::getMinImageCount() const {
+    auto imageCount = std::max(minImageCount_, capabilities_.minImageCount);
+    if(capabilities_.maxImageCount == 0) {
+        return imageCount;
+    }
+    return std::min(imageCount, capabilities_.maxImageCount);
+}
+
 VkExtent2D VulkanSwapchainBuilder::getExtent() const {
-    return { std::clamp(extent_.width, capabilities_.minImageExtent.width, capabilities_.maxImageExtent.width),
-        std::clamp(extent_.height, capabilities_.minImageExtent.height, capabilities_.maxImageExtent.height) };
+    if(capabilities_.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities_.currentExtent;
+    }
+
+    return {
+        std::clamp(extent_.width, capabilities_.minImageExtent.width, capabilities_.maxImageExtent.width),
+        std::clamp(extent_.height, capabilities_.minImageExtent.height, capabilities_.maxImageExtent.height)
+    };
+}
+
+VkSurfaceTransformFlagBitsKHR VulkanSwapchainBuilder::getPreTransform() const {
+    if((capabilities_.supportedTransforms & preTransform_) != 0) {
+        return preTransform_;
+    }
+    return capabilities_.currentTransform;
+}
+
+VkCompositeAlphaFlagBitsKHR VulkanSwapchainBuilder::getCompositeAlpha() const {
+    if((capabilities_.supportedCompositeAlpha & compositeAlpha_) != 0) {
+        return compositeAlpha_;
+    }
+
+    constexpr VkCompositeAlphaFlagBitsKHR fallbacks[] = {
+        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+        VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+        VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR
+    };
+
+    for(auto candidate : fallbacks) {
+        if((capabilities_.supportedCompositeAlpha & candidate) != 0) {
+            return candidate;
+        }
+    }
+
+    return compositeAlpha_;
 }
