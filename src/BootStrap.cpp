@@ -33,8 +33,12 @@ VulkanApplication BootStrap::application(SceneFactory &&sceneFactory) {
 
     volkLoadInstance(instance->handle());
 
+#ifndef NDEBUG
     spdlog::info("Creating debug messenger");
     auto debugMessenger = VulkanDebugMessenger::createDebugMessenger(instance->handle());
+#else
+    std::shared_ptr<VulkanDebugMessenger> debugMessenger;
+#endif
 
     spdlog::info("Creating Vulkan device");
     auto device =

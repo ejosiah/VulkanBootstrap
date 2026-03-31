@@ -8,7 +8,11 @@ VulkanDebugMessenger::VulkanDebugMessenger(VkInstance instance, VkDebugUtilsMess
 {}
 
 VulkanDebugMessenger::~VulkanDebugMessenger() {
+#ifndef NDEBUG
+    if(debugMessenger_ != VK_NULL_HANDLE && vkDestroyDebugUtilsMessengerEXT != nullptr) {
     vkDestroyDebugUtilsMessengerEXT(instance_, debugMessenger_, VK_NULL_HANDLE);
+    }
+#endif
 }
 
 VkBool32 VulkanDebugMessenger::debugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -54,15 +58,22 @@ VkDebugUtilsMessengerCreateInfoEXT VulkanDebugMessenger::debugCreateInfo() {
 std::shared_ptr <VulkanDebugMessenger> VulkanDebugMessenger::createDebugMessenger(VkInstance instance) {
 #ifdef NDEBUG
     return {};
-#endif
+#else
+    if(vkCreateDebugUtilsMessengerEXT == nullptr) {
+        spdlog::warn("vkCreateDebugUtilsMessengerEXT is unavailable");
+        return {};
+    }
+
     auto createInfo = debugCreateInfo();
 
     VkDebugUtilsMessengerEXT messenger{};
     auto result = vkCreateDebugUtilsMessengerEXT(instance, &createInfo, VK_NULL_HANDLE, &messenger);
 
     if(result != VK_SUCCESS){
+        spdlog::warn("unable to create debug messenger, vk result={}", static_cast<int>(result));
         return {};
     }
 
     return std::make_shared<VulkanDebugMessenger>(instance, messenger);
+#endif
 }

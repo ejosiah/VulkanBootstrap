@@ -7,13 +7,22 @@
 #include <stdexcept>
 #include <utility>
 
-
-
-VulkanInstance::VulkanInstance(const VkInstanceCreateInfo &createInfo, VkInstance instance)
-: createInfo_(createInfo)
-, appInfo_(*createInfo.pApplicationInfo)
-, instance_(instance)
-{}
+VulkanInstance::VulkanInstance(const VkInstanceCreateInfo &createInfo,
+                               VkApplicationInfo appInfo,
+                               std::vector<const char*> enabledLayers,
+                               std::vector<const char*> enabledExtensions,
+                               VkInstance instance)
+: appInfo_(appInfo)
+, createInfo_(createInfo)
+, enabledLayers_(std::move(enabledLayers))
+, enabledExtensions_(std::move(enabledExtensions))
+, instance_(instance) {
+    createInfo_.pApplicationInfo = &appInfo_;
+    createInfo_.enabledLayerCount = to<uint32>(enabledLayers_.size());
+    createInfo_.ppEnabledLayerNames = enabledLayers_.data();
+    createInfo_.enabledExtensionCount = to<uint32>(enabledExtensions_.size());
+    createInfo_.ppEnabledExtensionNames = enabledExtensions_.data();
+}
 
 VulkanInstance::~VulkanInstance() {
     if(surface_){
@@ -87,7 +96,9 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
     appInfo.apiVersion = apiVersion_;
 
 #ifndef NDEBUG
-    enabledExtensions_.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    if(std::find(enabledExtensions_.begin(), enabledExtensions_.end(), VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == enabledExtensions_.end()) {
+        enabledExtensions_.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
 #endif
 
     VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
@@ -111,7 +122,7 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::make_shared() {
         throw std::runtime_error("unable to create Vulkan instance");
     }
 
-    auto appInstance = std::make_shared<VulkanInstance>(createInfo, instance);
+    auto appInstance = std::make_shared<VulkanInstance>(createInfo, appInfo, enabledLayers_, enabledExtensions_, instance);
     if(window_){
         appInstance->set(window_->createSurface(instance));
     }
